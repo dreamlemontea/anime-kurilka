@@ -1,0 +1,858 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Аниме-викторины</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:#12121a; --card:#1d1d29; --card2:#262636; --text:#f2f2f7; --muted:#9a9ab0;
+  --accent:#ff4d6d; --ok:#2ecc71; --bad:#ff5c5c; --warn:#f5b041; --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{padding:12px 16px 32px;max-width:640px;margin:0 auto}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+h1{font-size:22px;margin:4px 0 2px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tab{flex:1;padding:10px 4px;border-radius:12px;background:var(--card);font-size:13px;font-weight:600}
+.tab.on{background:var(--accent);color:#fff}
+.tab.gear{flex:0 0 44px}
+.screen{display:none}.screen.on{display:block}
+
+/* слоты викторины */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.slot{aspect-ratio:4/5;border-radius:var(--radius);background:var(--card);display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-end;padding:6px;text-align:center;position:relative;overflow:hidden;
+  border:2px dashed #3a3a50}
+.slot .q{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:34px;color:#3a3a50;font-weight:800}
+.slot img{position:absolute;inset:4px 4px 0;width:calc(100% - 8px);height:calc(100% - 4px);object-fit:contain;object-position:bottom;
+  filter:brightness(0) invert(1) opacity(.8);transition:filter .4s}
+.slot.hasimg{background:#232333}
+.slot.hasimg .q{display:none}
+.slot.open{border:2px solid transparent;background:var(--c)}
+.slot.open img,.slot.missed img{filter:none}
+.slot.open .q,.slot.missed .q{display:none}
+.slot.missed{border:2px solid var(--bad);background:color-mix(in srgb,var(--c) 35%,var(--card))}
+.slot .lab{position:relative;width:calc(100% + 12px);margin:0 -6px -6px;padding:14px 4px 6px;display:none;
+  background:linear-gradient(transparent,#000c)}
+.slot .nm{font-weight:700;font-size:13px;line-height:1.15}
+.slot .tt{font-size:11px;opacity:.85}
+.slot.open .lab,.slot.missed .lab{display:block}
+.slot.pop{animation:pop .45s}
+@keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+
+.bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted)}
+.bar b{color:var(--text);font-size:18px}
+.inputwrap{position:relative}
+input[type=text]{width:100%;padding:14px;border-radius:12px;border:2px solid #333348;background:var(--card);color:var(--text);font-size:17px;outline:none}
+input[type=text]:focus{border-color:var(--accent)}
+.row{display:flex;gap:8px;margin-top:8px}
+.btn{flex:1;padding:13px;border-radius:12px;background:var(--accent);color:#fff;font-weight:700}
+.btn.ghost{background:var(--card2);color:var(--text)}
+.msg{min-height:24px;margin-top:10px;font-size:15px;text-align:center}
+.msg.ok{color:var(--ok)}.msg.bad{color:var(--bad)}.msg.warn{color:var(--warn)}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
+.sugg{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:var(--card2);border-radius:12px;overflow:hidden;z-index:5;
+  box-shadow:0 8px 24px #0008;display:none}
+.sugg div{padding:11px 14px;border-bottom:1px solid #33334a;font-size:15px}
+.sugg div small{color:var(--muted)}
+.sugg div.hl{background:#34344a}
+.result{background:var(--card);border-radius:var(--radius);padding:18px;text-align:center;margin-bottom:14px;display:none}
+.result .big{font-size:40px;font-weight:800}
+.result p{margin:6px 0;color:var(--muted)}
+
+/* царь горы */
+.sets{display:grid;gap:10px}
+.setcard{background:var(--card);border-radius:var(--radius);padding:14px;text-align:left;display:flex;gap:12px;align-items:center}
+.setcard.pool{flex-direction:column;align-items:stretch;gap:8px;overflow:hidden}
+.crowd{display:flex;justify-content:center;height:96px;margin:0 -14px -14px;padding:0 20px;order:2;
+  -webkit-mask-image:linear-gradient(to bottom,#000 65%,transparent);mask-image:linear-gradient(to bottom,#000 65%,transparent)}
+.crowd img{height:100%;width:auto;object-fit:contain;object-position:bottom;
+  filter:brightness(0) invert(1) opacity(.5)}
+.crowd img{align-self:flex-end}
+.crowd img:nth-child(even){filter:brightness(0) invert(1) opacity(.35)}
+.setcard .faces{display:flex;flex:0 0 auto;padding-right:18px}
+.setcard .faces img{width:44px;height:56px;object-fit:cover;object-position:top;border-radius:8px;background:#2c2c40;margin-right:-14px;border:2px solid var(--card)}
+.setcard b{display:block;font-size:17px}
+.setcard small{color:var(--muted)}
+.prog{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);margin-bottom:8px}
+.prog b{color:var(--text)}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:10px;position:relative}
+.fighter.noimg::before,.champ.noimg::before{content:attr(data-letter);position:absolute;inset:0 0 30% 0;display:flex;align-items:center;justify-content:center;font-size:96px;font-weight:900;opacity:.55}
+.vsword{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);font-weight:900;font-size:26px;color:#fff;
+  background:var(--accent);border-radius:50%;width:54px;height:54px;display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:0 4px 14px #0008}
+.fighter{border-radius:var(--radius);background:radial-gradient(circle at 50% 35%,var(--c),#15151f 75%);
+  display:flex;flex-direction:column;padding:0;position:relative;overflow:hidden;transition:transform .25s,opacity .35s,filter .35s}
+/* Правило роста (tools/measure.py): ноги у всех на нижней линии, макушка на верхней (F = 88% окна).
+   top — доля арта над макушкой (меч, шипы причёски), её замеряет скрипт; cls — подростки 0.92, сидя 0.62;
+   part — какую часть фигуры показывает арт (по пояс = 0.5), такой арт поднимается и растворяется снизу. */
+.fighter .art{position:relative;aspect-ratio:1080/1750;overflow:hidden}
+.fighter .box{position:absolute;left:50%;bottom:var(--boxb,0%);height:var(--boxh,88%);transform:translateX(-50%)}
+.fighter .box img{height:100%;width:auto;max-width:none;transform:scaleX(var(--flip,1));display:block}
+.fighter.fade .box img{-webkit-mask-image:linear-gradient(to top,transparent 0%,#000 14%);mask-image:linear-gradient(to top,transparent 0%,#000 14%)}
+.fighter .cap{position:relative;z-index:1;height:40px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;padding:0 6px;background:#000c;text-align:center}
+.fighter .cap b{display:block;font-size:16px;line-height:1.15}
+.fighter .crown{position:absolute;top:8px;left:8px;font-size:12px;font-weight:700;background:#000a;border-radius:8px;padding:3px 8px;z-index:1}
+.fighter:active{transform:scale(.97)}
+.fighter.win{outline:3px solid var(--ok);box-shadow:0 0 24px var(--ok)}
+.fighter.lose{opacity:.25;filter:grayscale(1);transform:scale(.92)}
+.fighter.enterR{animation:enterR .35s}
+.fighter.enterL{animation:enterL .35s}
+@keyframes enterR{from{transform:translateX(40px);opacity:0}}
+@keyframes enterL{from{transform:translateX(-40px);opacity:0}}
+.final{text-align:center}
+.final .champ{width:min(70%,300px);aspect-ratio:3/4;margin:0 auto;position:relative;border-radius:var(--radius);
+  background:radial-gradient(circle at 50% 40%,var(--c),#15151f 75%)}
+.final .champ img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:bottom;transform:scaleX(var(--flip,1))}
+.winner{font-size:40px;font-weight:900;color:#ffd23f;letter-spacing:.02em;text-shadow:3px 3px 0 #d0244f,6px 6px 0 #000;
+  transform:rotate(-4deg);margin:14px 0 4px;animation:pop .5s}
+.final h2{margin:4px 0}
+.final p{color:var(--muted);margin:6px 0}
+.path{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0}
+.path span{background:var(--card2);border-radius:8px;padding:4px 8px;font-size:13px}
+.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+.note{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+
+/* угадай по одному */
+.setcard .ico{flex:0 0 52px;height:52px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:26px}
+.timer{height:8px;border-radius:4px;background:var(--card2);overflow:hidden;margin-bottom:10px}
+.timer div{height:100%;width:100%;background:var(--ok);transition:width .1s linear,background .3s}
+.stage{position:relative;aspect-ratio:1/1;max-height:46vh;width:100%;margin:0 auto 10px;border-radius:var(--radius);overflow:hidden;
+  background:radial-gradient(circle at 50% 40%,#34344c,#17171f 75%)}
+.stage img{position:absolute;inset:8px 8px 0;width:calc(100% - 16px);height:calc(100% - 8px);object-fit:contain;object-position:bottom;transition:filter .4s}
+.stage.sil img{filter:brightness(0) invert(1) opacity(.85)}
+.stage.done img{filter:none}
+.stage .clue{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px}
+.stage .clue b{font-size:30px;line-height:1.1}
+.stage .clue small{color:var(--muted);margin-top:8px}
+.stage.text .clue{display:flex}
+.stage.text img{display:none}
+.stage .reveal{position:absolute;left:0;right:0;bottom:0;padding:26px 10px 12px;text-align:center;font-weight:800;font-size:20px;
+  background:linear-gradient(transparent,#000d);display:none}
+.stage.done .reveal{display:block}
+.stage .reveal small{display:block;font-size:14px;font-weight:600;opacity:.85;margin-top:2px}
+.stage.right{box-shadow:inset 0 0 0 4px var(--ok)}
+.stage.wrong{box-shadow:inset 0 0 0 4px var(--bad)}
+.answers{display:grid;gap:6px}
+.answers div{display:flex;justify-content:space-between;background:var(--card);border-radius:10px;padding:9px 12px;font-size:15px}
+.answers .y{color:var(--ok)}.answers .n{color:var(--bad)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.seg button{background:var(--card);border-radius:12px;padding:10px;font-weight:700;border:2px solid transparent}
+.seg button small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.seg button.on{border-color:var(--accent)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opts button{background:var(--card2);border-radius:12px;padding:14px 8px;font-weight:700;font-size:15px;line-height:1.2}
+.opts button.y{background:var(--ok);color:#06210f}
+.opts button.n{background:var(--bad)}
+.topline{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.topline .back{padding:0}
+.music{display:flex;align-items:center;gap:6px}
+.music button{background:var(--card2);border-radius:10px;width:34px;height:30px;font-size:15px}
+.music input{width:96px;accent-color:var(--accent)}
+.back{background:none;color:var(--muted);padding:0 0 10px;font-size:14px}
+
+.set{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.set label{display:flex;gap:10px;align-items:flex-start;padding:8px 0}
+.set input{margin-top:4px;accent-color:var(--accent)}
+.set small{color:var(--muted);display:block}
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <button class="tab on" data-s="king">Царь горы</button>
+  <button class="tab" data-s="guess">Угадай</button>
+  <button class="tab gear" data-s="settings">⚙︎</button>
+</div>
+
+<!-- ЦАРЬ ГОРЫ -->
+<section class="screen on" id="king">
+  <div id="kPick">
+    <h1>Царь горы</h1>
+    <p class="sub">Кто сильнее? Выбираешь из двух. Победитель остаётся, против него выходит следующий. Все в своём прайме.</p>
+    <div class="sets" id="sets"></div>
+  </div>
+  <div id="kPlay" style="display:none">
+    <div class="topline"><button class="back" id="kMenu">← Меню</button>
+      <div class="music"><button id="mToggle" aria-label="Музыка">🔊</button><input type="range" id="mVol" min="0" max="100" aria-label="Громкость музыки"></div></div>
+    <div class="prog"><span id="kSet"></span><span>Бой <b id="kRound"></b></span></div>
+    <div class="vs">
+      <button class="fighter" id="fA"><div class="crown">👑 держится: <span></span></div><div class="art"><div class="box"><img alt=""></div></div><div class="cap"><b></b></div></button>
+      <button class="fighter" id="fB"><div class="crown">👑 держится: <span></span></div><div class="art"><div class="box"><img alt=""></div></div><div class="cap"><b></b></div></button>
+      <div class="vsword">VS</div>
+    </div>
+    <p class="note">Жми на того, кто победит</p>
+  </div>
+  <div id="kEnd" class="final" style="display:none">
+    <div class="winner">WINNER!!</div>
+    <div class="champ" id="kChamp"><img alt=""></div>
+    <h2 id="kName"></h2>
+    <p id="kStat"></p>
+    <div class="path" id="kPath"></div>
+    <p id="kGuest"></p>
+    <div class="row">
+      <button class="btn" id="kAgain">Ещё раз</button>
+      <button class="btn ghost" id="kOther">Другой набор</button>
+    </div>
+    <div class="row"><button class="btn ghost" id="kShare">Поделиться</button></div>
+  </div>
+</section>
+
+<section class="screen" id="guess">
+  <div id="gPick">
+    <h1>Угадай</h1>
+    <p class="sub">Персонажи идут по одному. На каждого есть время: впиши, кто это. Чем быстрее, тем больше очков.</p>
+    <div class="seg" id="gLevel">
+      <button data-l="easy">Лёгкий<small>4 варианта</small></button>
+      <button data-l="hard">Сложный<small>вписать самому</small></button>
+    </div>
+    <div class="sets" id="gList"></div>
+  </div>
+  <div id="gRun" style="display:none">
+    <button class="back" id="gMenu">← Меню</button>
+    <div class="prog"><span id="gTitle"></span><span><b id="gNum"></b> · <span id="gPtsLab">очки</span> <b id="gPts">0</b></span></div>
+    <div class="timer"><div id="gBar"></div></div>
+    <div class="stage" id="gStage"><img alt="" draggable="false"><div class="clue"></div><div class="reveal"></div></div>
+    <div class="opts" id="gOpts"></div>
+    <div class="inputwrap" id="gInpWrap"><input type="text" id="gInp" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done"><div class="sugg" id="gSugg"></div></div>
+    <div class="row"><button class="btn" id="gGo">Ответить</button><button class="btn ghost" id="gSkip">Не знаю</button></div>
+    <div class="msg" id="gMsg"></div>
+  </div>
+  <div id="gEnd" style="display:none">
+    <div class="result" style="display:block">
+      <div class="big" id="gRes"></div>
+      <p id="gResPts"></p>
+      <p id="gRank"></p>
+      <div class="row"><button class="btn" id="gAgain">Ещё раз</button><button class="btn ghost" id="gBack">К списку</button></div>
+      <div class="row"><button class="btn ghost" id="gShare">Поделиться</button></div>
+    </div>
+    <div class="answers" id="gAns"></div>
+  </div>
+  <div id="gGrid" style="display:none">
+    <button class="back" id="gGridBack">← К списку</button>
+    <div id="gridSil"></div><div id="gridHashira"></div>
+  </div>
+</section>
+
+<section class="screen" id="settings">
+  <h1>Настройки</h1>
+  <div class="set">
+    <b>Как вводить ответы в угадайках</b>
+    <label><input type="radio" name="mode" value="free" checked>
+      <span>Свободный ввод<small>Пишешь сам. Регистр, ё/е, дефисы и 1–2 опечатки прощаются.</small></span></label>
+    <label><input type="radio" name="mode" value="ac">
+      <span>Автодополнение<small>Начинаешь писать и выбираешь из списка (больше сотни персонажей, есть ловушки).</small></span></label>
+  </div>
+</section>
+
+<script>
+// ================= ДАННЫЕ =================
+// Персонажи с артами (из твоей папки «арты персонажей»)
+const CHARS = {
+  shikamaru:{ru:"Нара Шикамару", en:"Shikamaru Nara", img:"ch/shikamaru", al:[], looks:"left", top:0.027, cls:0.92},
+  denji:{ru:"Дэндзи", en:"Denji", img:"ch/denji", al:["денджи"], looks:"right", top:0.08, cls:0.92},
+  levi:{ru:"Леви Аккерман", en:"Levi Ackerman", img:"ch/levi", al:["ливай","леви"], looks:"right", top:0.037},
+  rocklee:{ru:"Рок Ли", en:"Rock Lee", img:"ch/rocklee", al:[], looks:"right", top:0.045, cls:0.92},
+  kenpachi:{ru:"Кенпачи Зараки", en:"Kenpachi Zaraki", img:"ch/kenpachi", al:[], looks:"right", top:0.036, cls:1.06},
+  zoro:{ru:"Ророноа Зоро", en:"Roronoa Zoro", img:"ch/zoro", al:[], looks:"right", top:0.007},
+  toji:{ru:"Тодзи Фусигуро", en:"Toji Fushiguro", img:"ch/toji", al:["тоджи","фушигуро"], looks:"left", top:0.004},
+  kakashi:{ru:"Какаши Хатакэ", en:"Kakashi Hatake", img:"ch/kakashi", al:[], looks:"left", top:0.024},
+  ichigo:{ru:"Ичиго Куросаки", en:"Ichigo Kurosaki", img:"ch/ichigo", al:[], looks:"left", top:0.031, cls:0.92},
+  hao:{ru:"Хао Асакура", en:"Hao Asakura", img:"ch/hao", al:[], looks:"front", top:0.005, cls:0.92},
+  makima:{ru:"Макима", en:"Makima", img:"ch/makima", al:[], looks:"right", top:0.0},
+  muzan:{ru:"Мудзан Кибуцуджи", en:"Muzan Kibutsuji", img:"ch/muzan", al:["музан","муздан","кибуцудзи"], looks:"left", top:0.0},
+  eren:{ru:"Эрен Йегер", en:"Eren Yeager", img:"ch/eren", al:["егер","ягер","jaeger"], looks:"left", top:0.0},
+  sukuna:{ru:"Сукуна", en:"Sukuna", img:"ch/sukuna", al:["рёмен сукуна"], looks:"left", top:0.01},
+  jinwoo:{ru:"Сон Джин У", en:"Sung Jinwoo", img:"ch/jinwoo", al:["сон джин ву","джин ву","джинву","джин у","sung jin woo","jin woo"], looks:"left", top:0.013},
+  saitama:{ru:"Сайтама", en:"Saitama", img:"ch/saitama", al:[], looks:"right", top:0.006},
+  gojo:{ru:"Сатору Годжо", en:"Satoru Gojo", img:"ch/gojo", al:["годзё","годзе","годжё"], looks:"left", top:0.019},
+  light:{ru:"Ягами Лайт", en:"Light Yagami", img:"ch/light", al:["кира","лайт ягами"], looks:"left", top:0.001},
+  thorfinn:{ru:"Торфинн", en:"Thorfinn", img:"ch/thorfinn", al:["торфин"], looks:"right", top:0.016},
+  todo:{ru:"Тодо Аой", en:"Aoi Todo", img:"ch/todo", al:[], looks:"left", top:0.029},
+  guy:{ru:"Майто Гай", en:"Might Guy", img:"ch/guy", al:["гай","maito gai"], looks:"right", top:0.003},
+  maki:{ru:"Маки Дзэнин", en:"Maki Zenin", img:"ch/maki", al:["зенин","maki zen'in"], looks:"right", top:0.0, cls:0.92, part:0.5, fade:true},
+  yoh:{ru:"Йо Асакура", en:"Yoh Asakura", img:"ch/yoh", al:["йо","yoh","yo asakura"], looks:"right", top:0.007, cls:0.92},
+  itachi:{ru:"Итачи Учиха", en:"Itachi Uchiha", img:"ch/itachi", al:[], looks:"right", top:0.006},
+  rengoku:{ru:"Кёджуро Ренгоку", en:"Kyojuro Rengoku", img:"ch/rengoku", al:["кёдзюро","ренгоку","кеджуро"], looks:"right", top:0.009},
+  shanks:{ru:"Шанкс", en:"Shanks", img:"ch/shanks", al:["рыжий шанкс"], looks:"left", top:0.009},
+  nezuko:{ru:"Незуко Камадо", en:"Nezuko Kamado", img:"ch/nezuko", al:["незуко"], looks:"front", top:0.01, cls:0.92},
+  ren:{ru:"Рен Тао", en:"Ren Tao", img:"ch/ren", al:["ленни","len tao"], looks:"left", top:0.079, cls:0.92},
+  byakuya:{ru:"Бьякуя Кучики", en:"Byakuya Kuchiki", img:"ch/byakuya", al:[], looks:"left", top:0.011},
+  doma:{ru:"Дома", en:"Doma", img:"ch/doma", al:["доума","douma"], looks:"left", top:0.017},
+  akaza:{ru:"Аказа", en:"Akaza", img:"ch/akaza", al:[], looks:"front", top:0.019, cls:0.62},
+  naruto:{ru:"Наруто Узумаки", en:"Naruto Uzumaki", img:"ch/naruto", al:[], looks:"right", top:0.023, cls:0.92},
+  luffy:{ru:"Монки Д. Луффи", en:"Monkey D. Luffy", img:"ch/luffy", al:["луффи"], looks:"right", top:0.001},
+  madara:{ru:"Мадара Учиха", en:"Madara Uchiha", img:"ch/madara", al:[], looks:"front", top:0.019},
+  giyu:{ru:"Гию Томиока", en:"Giyu Tomioka", img:"ch/giyu", al:["гиюу"], looks:"right", top:0.01},
+  // арта пока нет: в царе горы цветная карточка с буквой, в угадайках не участвуют
+  baki:{ru:"Баки Ханма", en:"Baki Hanma", al:[]},
+  guts:{ru:"Гатс", en:"Guts", al:[]},
+  katara:{ru:"Катара", en:"Katara", al:[]},
+  reze:{ru:"Резе", en:"Reze", al:[]},
+  dio:{ru:"Дио Брандо", en:"Dio Brando", al:["дио"]},
+};
+// Наборы «царя горы» — твои пулы по возрастанию силы; арт у персонажа один на все пулы
+const SETS = [
+  {name:"Пул 1", note:"",
+   list:"rocklee denji nezuko levi ren byakuya doma toji itachi ichigo akaza makima naruto sukuna jinwoo saitama gojo light"},
+  {name:"Пул 2", note:"батл с Умидом", guest:"У Умида", winner:"saitama",
+   list:"shikamaru denji levi rocklee kenpachi zoro toji kakashi ichigo hao makima muzan eren sukuna jinwoo saitama gojo light"},
+  {name:"Пул 3", note:"батл с Женей", guest:"У Жени", winner:"light",
+   list:"thorfinn levi todo guy maki yoh itachi rengoku ichigo makima muzan shanks gojo jinwoo saitama sukuna eren light"},
+  {name:"Пул 4", note:"",
+   list:"baki guts giyu katara reze itachi akaza luffy dio kenpachi sukuna shanks madara gojo ichigo jinwoo saitama light"},
+].map(s=>({...s, list:s.list.split(" ").map(c=>({c, img:CHARS[c].img||"-"}))}));
+
+const HASHIRA = [
+  {ru:"Гию Томиока", img:"h01", tw:["воды","вода","водяной","water"], title:"Столп Воды", c:"#2f6fd1", first:["гию","гиюу","гиу","giyu","giyuu"], last:["томиока","tomioka"]},
+  {ru:"Шинобу Кочо", img:"h02", tw:["насекомых","насекомое","насекомые","насекомого","бабочки","бабочка","insect"], title:"Столп Насекомых", c:"#8e5bd6", first:["шинобу","синобу","shinobu"], last:["кочо","коче","кочоу","kocho","kochou"]},
+  {ru:"Кёджуро Ренгоку", img:"h03", tw:["пламени","пламя","огня","огонь","огненный","flame"], title:"Столп Пламени", c:"#e3582a", first:["кёджуро","кёдзюро","кёджиро","кёдзиро","кеджуро","kyojuro","kyoujurou"], last:["ренгоку","rengoku"]},
+  {ru:"Тенген Узуй", img:"h04", tw:["звука","звук","sound"], title:"Столп Звука", c:"#c23b8a", first:["тенген","тэнгэн","tengen"], last:["узуй","удзуй","узуи","uzui"]},
+  {ru:"Мицури Канроджи", img:"h05", tw:["любви","любовь","love"], title:"Столп Любви", c:"#ec6fa6", first:["мицури","митсури","mitsuri"], last:["канроджи","канродзи","kanroji"]},
+  {ru:"Муичиро Токито", img:"h06", tw:["тумана","туман","mist"], title:"Столп Тумана", c:"#4fb3b0", first:["муичиро","муитиро","muichiro","muichirou"], last:["токито","tokito"]},
+  {ru:"Гёмей Химеджима", img:"h07", tw:["камня","камень","stone"], title:"Столп Камня", c:"#7a7f8a", first:["гёмей","гёмэй","гиомей","gyomei","gyoumei"], last:["химеджима","химэдзима","химедзима","himejima"]},
+  {ru:"Санеми Шинадзугава", img:"h08", tw:["ветра","ветер","wind"], title:"Столп Ветра", c:"#3fa35b", first:["санеми","санэми","sanemi"], last:["шинадзугава","синадзугава","шиназугава","shinazugawa"]},
+  {ru:"Обанай Игуро", img:"h09", tw:["змея","змеи","змей","змеиный","serpent","snake"], title:"Столп Змея", c:"#5a4fb8", first:["обанай","обанаи","obanai"], last:["игуро","iguro"]},
+].map(h=>({...h, en:h.first.find(f=>/[a-z]/.test(f))+" "+h.last.find(l=>/[a-z]/.test(l)), names:h.first.flatMap(f=>h.last.map(l=>f+" "+l))}));
+
+// Персонажи без артов: ловушки для автодополнения и ответ «его тут нет»
+const OTHERS = `Танджиро Камадо|Tanjiro Kamado;Незуко Камадо|Nezuko Kamado;Зеницу Агацума|Zenitsu Agatsuma;Иноске Хашибира|Inosuke Hashibira;
+Канао Цуюри|Kanao Tsuyuri;Генья Шинадзугава|Genya Shinazugawa;Аой Кандзаки|Aoi Kanzaki;Канаэ Кочо|Kanae Kocho;Сакондзи Урокодаки|Sakonji Urokodaki;
+Сабито|Sabito;Макомо|Makomo;Дзигоро Куваджима|Jigoro Kuwajima;Кайгаку|Kaigaku;Кагая Убуяшики|Kagaya Ubuyashiki;Аманэ Убуяшики|Amane Ubuyashiki;
+Кирия Убуяшики|Kiriya Ubuyashiki;Синдзюро Ренгоку|Shinjuro Rengoku;Сэндзюро Ренгоку|Senjuro Rengoku;Руи|Rui;
+Кокушибо|Kokushibo;Доума|Doma;Аказа|Akaza;Хантенгу|Hantengu;Гёкко|Gyokko;Даки|Daki;Гютаро|Gyutaro;Накимэ|Nakime;Энму|Enmu;Кёгай|Kyogai;
+Сусамару|Susamaru;Яхаба|Yahaba;Тамайо|Tamayo;Юширо|Yushiro;Ёриичи Цугикуни|Yoriichi Tsugikuni;Мичикацу Цугикуни|Michikatsu Tsugikuni;
+Мурата|Murata;Хотару Хаганезука|Hotaru Haganezuka;Котецу|Kotetsu;Тандзюро Камадо|Tanjuro Kamado;Киэ Камадо|Kie Kamado;
+Макио|Makio;Сума|Suma;Хинацуру|Hinatsuru;Гото|Goto;Юичиро Токито|Yuichiro Tokito;Хакудзи|Hakuji;Коюки|Koyuki;Котоха|Kotoha;
+Цутако Томиока|Tsutako Tomioka;Кабурамару|Kaburamaru;
+Наруто Узумаки|Naruto Uzumaki;Саске Учиха|Sasuke Uchiha;Сакура Харуно|Sakura Haruno;Джирайя|Jiraiya;Мадара Учиха|Madara Uchiha;
+Кушина Узумаки|Kushina Uzumaki;Конан|Konan;Монки Д. Луффи|Monkey D. Luffy;Санджи|Sanji;Нами|Nami;Портгас Д. Эйс|Portgas D. Ace;
+Тони Тони Чоппер|Tony Tony Chopper;Юдзи Итадори|Yuji Itadori;Мегуми Фушигуро|Megumi Fushiguro;Нобара Кугисаки|Nobara Kugisaki;
+Сугуру Гето|Suguru Geto;Микаса Аккерман|Mikasa Ackerman;Армин Арлерт|Armin Arlert;Изуку Мидория|Izuku Midoriya;Кацуки Бакуго|Katsuki Bakugo;
+Всемогущий|All Might;Шото Тодороки|Shoto Todoroki;Гоку|Goku;Вегета|Vegeta;Гон Фрикс|Gon Freecss;Киллуа Золдик|Killua Zoldyck;
+Бьякуя Кучики|Byakuya Kuchiki;Хицугая Тоширо|Hitsugaya Toshiro;Мацумото Рангику|Matsumoto Rangiku;Рен Тао|Ren Tao;
+Лелуш Ламперуж|Lelouch Lamperouge;Акаши Сейджуро|Akashi Seijuro;Эл|L;Генос|Genos;Аня Форджер|Anya Forger;Лойд Форджер|Loid Forger;
+Пауэр|Power;Аста|Asta;Юно|Yuno;Ханма Баки|Baki Hanma;Гатс|Guts`.split(";").map(s=>{const [ru,en]=s.trim().split("|");return {ru,en,names:[ru,en]}});
+const CHAR_LIST = Object.entries(CHARS).filter(([id,c])=>c.img).map(([id,c])=>({id,...c,names:[c.ru,c.en]}));
+
+const $=id=>document.getElementById(id);
+
+// ================= РАСПОЗНАВАНИЕ =================
+function norm(s){
+  return s.toLowerCase().replace(/ё/g,"е").replace(/э/g,"е").replace(/й/g,"и")
+    .replace(/[-‐–—_.,'’`"!?]/g," ").replace(/\s+/g," ").trim();
+}
+function lev(a,b){
+  if(a===b) return 0;
+  const m=a.length,n=b.length; let prev=Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){
+    const cur=[i];
+    for(let j=1;j<=n;j++) cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    prev=cur;
+  }
+  return prev[n];
+}
+// Сколько опечаток прощаем: до 4 букв ни одной, 5–7 одну, 8+ две
+const tol = len => len<=4 ? 0 : len<=7 ? 1 : 2;
+
+// Индекс: полное имя, имя в обратном порядке, каждое слово от 3 букв, ручные варианты
+function buildIndex(items){
+  const idx=[];
+  items.forEach((it,i)=>{
+    const add=n=>{ n=norm(n); if(n) idx.push({n,i}); };
+    it.names.forEach(full=>{
+      const n=norm(full), t=n.split(" "); add(n);
+      if(t.length>1){ add([...t].reverse().join(" ")); t.filter(x=>x.length>=3).forEach(add); }
+    });
+    (it.al||[]).forEach(add);
+  });
+  return idx;
+}
+// Все элементы индекса, подходящие под ввод, с лучшим расстоянием
+function hits(s, idx){
+  const best=new Map();
+  for(const e of idx){
+    if(Math.abs(e.n.length-s.length)>2) continue;
+    const d=lev(s,e.n);
+    if(d<=tol(e.n.length) && !(best.get(e.i)<=d)) best.set(e.i,d);
+  }
+  return best;
+}
+
+// ================= УГАДАЙКА (общий движок) =================
+let mode="free";
+try{ mode=localStorage.getItem("quizMode")||"free"; }catch(e){}
+document.querySelector(`input[name=mode][value=${mode}]`).checked=true;
+const tg = window.Telegram && Telegram.WebApp && Telegram.WebApp.initData ? Telegram.WebApp : null;
+const haptic = t => { try{ tg && tg.HapticFeedback.notificationOccurred(t); }catch(e){} };
+// Ссылка на мини-приложение вида https://t.me/имя_бота/имя_приложения — вписать после создания в BotFather
+const TG_APP_LINK = "";
+const shareText = async text => {
+  const url=TG_APP_LINK || (location.href.startsWith("http")?location.href.split("#")[0]:"");
+  try{
+    if(tg) tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
+    else if(navigator.share) await navigator.share({text,url});
+    else await navigator.clipboard.writeText(text+" "+url);
+  }catch(e){}
+};
+
+function createQuiz(root, cfg){
+  // cfg: title, sub, items, distract, pick() → индексы раунда, label(i), notHere(name), shareLine(x,n), placeholder
+  root.innerHTML = `
+    <h1>${cfg.title}</h1><p class="sub">${cfg.sub}</p>
+    <div class="result"><div class="big"></div><p class="rt"></p>
+      <div class="row"><button class="btn again">Ещё раз</button><button class="btn ghost share">Поделиться</button></div></div>
+    <div class="bar"><span>Угадано: <b class="score">0</b> из <span class="total"></span></span><span>Ошибок: <b class="miss">0</b></span></div>
+    <div class="grid"></div>
+    <div class="play">
+      <div class="inputwrap"><input type="text" placeholder="" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done"><div class="sugg"></div></div>
+      <div class="row"><button class="btn go">Ответить</button><button class="btn ghost giveup">Сдаюсь</button></div>
+      <div class="msg"></div>
+    </div>`;
+  const q=sel=>root.querySelector(sel), inp=q("input"), sugg=q(".sugg");
+  const idx=buildIndex(cfg.items), didx=buildIndex(cfg.distract);
+  const acList=[...cfg.items.map((p,i)=>({ru:p.ru,en:p.en,i})), ...cfg.distract.map(p=>({ru:p.ru,en:p.en}))]
+    .filter((p,k,a)=>a.findIndex(x=>x.ru===p.ru)===k)
+    .map(p=>({...p, keys:[norm(p.ru),norm(p.en)].flatMap(n=>[n,...n.split(" ")])}))
+    .sort((a,b)=>a.ru.localeCompare(b.ru,"ru"));
+  let round=[], found=new Set(), misses=0, over=false;
+
+  function render(){
+    q(".grid").innerHTML = round.map(i=>{
+      const it=cfg.items[i], cls=(found.has(i)?"open":over?"missed":"")+(it.img?" hasimg":"");
+      return `<div class="slot ${cls}" data-i="${i}" style="--c:${it.c||"#3b3b58"}"><div class="q">?</div>
+        ${it.img?`<img src="img/${it.img}.png" alt="" draggable="false">`:""}
+        <div class="lab"><div class="nm">${it.ru}</div>${it.title?`<div class="tt">${it.title}</div>`:""}</div></div>`;
+    }).join("");
+    q(".score").textContent=found.size; q(".miss").textContent=misses; q(".total").textContent=round.length;
+  }
+  const say=(t,c)=>{ const m=q(".msg"); m.textContent=t; m.className="msg "+(c||""); };
+  function hit(i,typo){
+    if(found.has(i)){ say(`${cfg.items[i].ru} уже открыт`,"warn"); return; }
+    found.add(i); haptic("success"); render();
+    q(`.slot[data-i="${i}"]`).classList.add("pop");
+    say(typo?`Засчитано: ${cfg.items[i].ru} (с опечаткой)`:`Да! ${cfg.items[i].ru}`,"ok");
+    if(found.size===round.length) finish();
+  }
+  function wrong(t){
+    misses++; haptic("error"); render(); say(t,"bad");
+    inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake");
+  }
+  // выбрать ответ: сначала неоткрытый из раунда, потом открытый, иначе «не тут»
+  function judge(s){
+    const h=hits(s,idx), dh=hits(s,didx);
+    const min=m=>Math.min(...m.values());
+    const bestD=h.size?min(h):Infinity, bestO=dh.size?min(dh):Infinity;
+    if(bestD===Infinity && bestO===Infinity) return wrong("Такого не знаем, попробуй ещё");
+    const inRound=[...h].filter(([i,d])=>round.includes(i)).sort((a,b)=>a[1]-b[1]);
+    const fresh=inRound.find(([i,d])=>!found.has(i)&&d<=bestO);
+    if(fresh) return hit(fresh[0],fresh[1]>0);
+    if(inRound.length && inRound[0][1]<=bestO) return hit(inRound[0][0],false);
+    const name = bestD<=bestO ? cfg.items[[...h].sort((a,b)=>a[1]-b[1])[0][0]].ru
+      : cfg.distract[[...dh].sort((a,b)=>a[1]-b[1])[0][0]].ru;
+    wrong(cfg.notHere(name));
+  }
+  function submit(){
+    if(over) return;
+    if(mode==="ac"){ const f=sugg.querySelector(".hl")||sugg.querySelector("div"); if(f){ f.click(); return; } }
+    const s=norm(inp.value); if(s.length<2) return;
+    inp.value=""; hideSugg(); judge(s); inp.focus();
+  }
+  function finish(){
+    over=true; render(); hideSugg(); q(".play").style.display="none";
+    const x=found.size, n=round.length;
+    q(".big").textContent=`${x} из ${n}`;
+    q(".rt").textContent = x===n ? (misses?`Все! Ошибок: ${misses}`:"Все, без единой ошибки!")
+      : "Пропущенные подсвечены красным.";
+    q(".result").style.display="block"; window.scrollTo({top:0,behavior:"smooth"});
+  }
+  function reset(){
+    round=cfg.pick(); found=new Set(); misses=0; over=false;
+    q(".result").style.display="none"; q(".play").style.display="block"; say(""); inp.value=""; render();
+  }
+  function hideSugg(){ sugg.style.display="none"; sugg.innerHTML=""; }
+  function moveHl(d){
+    const it=[...sugg.children]; if(!it.length) return;
+    let k=it.findIndex(x=>x.classList.contains("hl")); it[k]?.classList.remove("hl");
+    k=(k+d+it.length)%it.length; it[k].classList.add("hl");
+  }
+  inp.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){ e.preventDefault(); submit(); }
+    else if(mode==="ac"&&(e.key==="ArrowDown"||e.key==="ArrowUp")){ e.preventDefault(); moveHl(e.key==="ArrowDown"?1:-1); }
+  });
+  inp.addEventListener("input",()=>{
+    if(mode!=="ac") return;
+    const s=norm(inp.value); if(s.length<2){ hideSugg(); return; }
+    const list=acList.filter(p=>p.keys.some(k=>k.startsWith(s))).slice(0,7);
+    if(!list.length){ hideSugg(); return; }
+    sugg.innerHTML=""; sugg.style.display="block";
+    list.forEach(p=>{
+      const d=document.createElement("div"); d.innerHTML=`${p.ru} <small>${p.en}</small>`;
+      d.onclick=()=>{ inp.value=""; hideSugg();
+        p.i!==undefined&&round.includes(p.i) ? hit(p.i,false) : wrong(cfg.notHere(p.ru)); inp.focus(); };
+      sugg.appendChild(d);
+    });
+  });
+  q(".go").onclick=submit;
+  q(".giveup").onclick=()=>{ if(!over) finish(); };
+  q(".again").onclick=reset;
+  q(".share").onclick=()=>shareText(cfg.shareLine(found.size,round.length));
+  const setPh=()=>{ inp.placeholder = mode==="ac" ? "Начни писать и выбери из списка" : cfg.placeholder; hideSugg(); };
+  root.setMode=setPh; setPh(); reset();
+}
+
+const shuffle=a=>{ a=[...a]; for(let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+createQuiz(document.getElementById("gridSil"), {
+  title:"Угадай по силуэту",
+  sub:"Перед тобой 9 силуэтов. Впиши имя или фамилию, угаданный откроется. Порядок неважен.",
+  items:CHAR_LIST, distract:[...OTHERS, ...HASHIRA],
+  pick:()=>shuffle(CHAR_LIST.map((_,i)=>i)).slice(0,9),
+  notHere:n=>`${n}? Его тут нет`,
+  shareLine:(x,n)=>`Я угадал ${x} из ${n} аниме-персонажей по силуэту. А ты?`,
+  placeholder:"Например: Годжо",
+});
+createQuiz(document.getElementById("gridHashira"), {
+  title:"Угадай всех столпов",
+  sub:"«Клинок, рассекающий демонов». Назови всех 9 столпов: можно имя или фамилию, порядок любой.",
+  items:HASHIRA.map(h=>({...h,img:undefined})), distract:[...OTHERS, ...CHAR_LIST], // тут без картинок: вспоминаешь сам
+  pick:()=>HASHIRA.map((_,i)=>i),
+  notHere:n=>`${n} не столп`,
+  shareLine:(x,n)=>`Я угадал ${x} из ${n} столпов из «Клинка, рассекающего демонов». А ты?`,
+  placeholder:"Например: Ренгоку",
+});
+
+document.querySelectorAll("input[name=mode]").forEach(r=>r.onchange=()=>{
+  mode=r.value; try{ localStorage.setItem("quizMode",mode); }catch(e){}
+  ["gridSil","gridHashira"].forEach(id=>document.getElementById(id).setMode());
+  setRunPh();
+});
+
+// ================= УГАДАЙ ПО ОДНОМУ (с таймером) =================
+const RUNS = [
+  {id:"pic", ico:"🖼️", name:"Кто это?", desc:"Картинка целиком · 10 персонажей · 10 с",
+   items:CHAR_LIST, distract:[...OTHERS,...HASHIRA], view:"pic", n:10, sec:10},
+  {id:"sil", ico:"👤", name:"Кто это? Силуэт", desc:"Сложнее: только силуэт · 10 персонажей · 10 с",
+   items:CHAR_LIST, distract:[...OTHERS,...HASHIRA], view:"sil", n:10, sec:10},
+  {id:"hashira", ico:"⚔️", name:"Столпы", desc:"Силуэт столпа · 9 столпов · 15 с · имя и фамилия 3 балла, одно из них 2, только титул 1",
+   items:HASHIRA, distract:[...OTHERS,...CHAR_LIST], view:"sil", n:9, sec:15, tiers:true},
+  {id:"gridSil", ico:"🧩", name:"Все силуэты сразу", desc:"9 силуэтов на экране, без таймера", grid:true},
+  {id:"gridHashira", ico:"📋", name:"Все столпы сразу", desc:"9 пустых слотов, без таймера", grid:true},
+];
+$("gList").innerHTML = RUNS.map((r,k)=>`<button class="setcard" data-k="${k}"><div class="ico">${r.ico}</div>
+  <div><b>${r.name}</b><small>${r.desc}</small></div></button>`).join("");
+document.querySelectorAll("#gList .setcard").forEach(b=>b.onclick=()=>{
+  const r=RUNS[+b.dataset.k];
+  if(r.grid){
+    $("gPick").style.display="none"; $("gGrid").style.display="block";
+    $("gridSil").style.display = r.id==="gridSil"?"block":"none";
+    $("gridHashira").style.display = r.id==="gridHashira"?"block":"none";
+  } else startRun(r);
+});
+$("gGridBack").onclick=()=>{ $("gGrid").style.display="none"; $("gPick").style.display="block"; };
+
+let level="hard";
+try{ level=localStorage.getItem("quizLevel")||"hard"; }catch(e){}
+const paintLevel=()=>document.querySelectorAll("#gLevel button").forEach(b=>b.classList.toggle("on",b.dataset.l===level));
+document.querySelectorAll("#gLevel button").forEach(b=>b.onclick=()=>{
+  level=b.dataset.l; try{ localStorage.setItem("quizLevel",level); }catch(e){} paintLevel();
+});
+paintLevel();
+
+let R=null; // {cfg, order, pos, pts, log, t0, timer, locked, idx, didx}
+function startRun(cfg){
+  R={cfg, order:shuffle(cfg.items.map((_,i)=>i)).slice(0,cfg.n), pos:0, pts:0, log:[],
+     idx:buildIndex(cfg.items), didx:buildIndex(cfg.distract)};
+  R.ac=[...cfg.items.map((p,i)=>({ru:p.ru,en:p.en,i})), ...cfg.distract.map(p=>({ru:p.ru,en:p.en}))]
+    .filter((p,k,a)=>a.findIndex(x=>x.ru===p.ru)===k)
+    .map(p=>({...p, keys:[norm(p.ru),norm(p.en)].flatMap(n=>[n,...n.split(" ")])}))
+    .sort((a,b)=>a.ru.localeCompare(b.ru,"ru"));
+  $("gPick").style.display="none"; $("gEnd").style.display="none"; $("gRun").style.display="block";
+  $("gTitle").textContent=cfg.name; $("gPts").textContent=0; $("gPtsLab").textContent=cfg.tiers?"баллы":"очки";
+  showItem();
+}
+function showItem(){
+  const cfg=R.cfg, it=cfg.items[R.order[R.pos]], st=$("gStage");
+  st.className="stage "+cfg.view;
+  if(cfg.view==="text"){ st.querySelector(".clue").innerHTML=`<b>${it.title}</b><small>Как зовут этого столпа?</small>`; }
+  else st.querySelector("img").src=`img/${it.img}.png`;
+  st.querySelector(".reveal").innerHTML=it.ru+(it.title?`<small>${it.title}</small>`:"");
+  $("gNum").textContent=`${R.pos+1} / ${R.order.length}`;
+  $("gMsg").textContent=""; $("gMsg").className="msg";
+  $("gInp").value=""; hideRunSugg(); R.locked=false;
+  const easy=level==="easy";
+  $("gInpWrap").style.display=$("gGo").style.display = easy?"none":"";
+  $("gOpts").style.display = easy?"grid":"none";
+  if(easy){
+    // правильный + 3 случайных из того же набора
+    const cur=R.order[R.pos], wrong=shuffle(cfg.items.map((_,i)=>i).filter(i=>i!==cur)).slice(0,3);
+    $("gOpts").innerHTML="";
+    shuffle([cur,...wrong]).forEach(i=>{
+      const b=document.createElement("button"); b.textContent=cfg.items[i].ru; b.dataset.i=i;
+      b.onclick=()=>{
+        if(R.locked) return;
+        $("gOpts").querySelector(`[data-i="${cur}"]`).classList.add("y");
+        if(i===cur) resolve(true,"",1); else { b.classList.add("n"); resolve(false,`Нет, это ${cfg.items[cur].ru}`); }
+      };
+      $("gOpts").appendChild(b);
+    });
+  }
+  R.t0=performance.now(); clearInterval(R.timer);
+  R.timer=setInterval(tick,100); tick();
+  if(!easy) $("gInp").focus({preventScroll:true});
+}
+function tick(){
+  const left=Math.max(0,R.cfg.sec-(performance.now()-R.t0)/1000), f=left/R.cfg.sec;
+  $("gBar").style.width=(f*100)+"%";
+  $("gBar").style.background = f>.5?"var(--ok)":f>.2?"var(--warn)":"var(--bad)";
+  if(left<=0) resolve(false,"Время вышло");
+}
+function resolve(ok, text, tier){
+  if(R.locked) return; R.locked=true; clearInterval(R.timer);
+  const it=R.cfg.items[R.order[R.pos]], secs=(performance.now()-R.t0)/1000;
+  // столпы: баллы за полноту ответа (tier), остальные: быстрее = больше очков
+  const got = !ok ? 0 : R.cfg.tiers ? (tier||1) : Math.round(100+Math.max(0,R.cfg.sec-secs)*10);
+  R.pts+=got; R.log.push({ru:it.ru, ok, secs, got});
+  $("gPts").textContent=R.pts;
+  $("gStage").classList.add("done", ok?"right":"wrong");
+  $("gMsg").textContent = !ok ? text : R.cfg.tiers ? `+${got} ${["","(только титул)","(имя или фамилия)","(имя и фамилия)"][got]}` : `+${got}`;
+  $("gMsg").className="msg "+(ok?"ok":"bad");
+  haptic(ok?"success":"error"); hideRunSugg();
+  setTimeout(()=>{ R.pos++; R.pos>=R.order.length ? endRun() : showItem(); }, R.cfg.tiers ? (ok?1600:2200) : (ok?900:1500)); // у столпов дольше: успеть прочитать имя и титул
+}
+// ответ засчитан, если ближе всего к текущему персонажу (или не хуже ловушки)
+// столпы: 3 балла за имя и фамилию, 2 за одно из них, 1 за титул («столп воды», «пламени»)
+function tierFor(s, it){
+  const toks=s.split(" ").filter(t=>!["столп","столпа","hashira"].includes(t));
+  const near=list=>toks.some(t=>list.some(v=>{ v=norm(v); return lev(t,v)<=tol(v.length); }));
+  const f=near(it.first), l=near(it.last);
+  return f&&l ? 3 : f||l ? 2 : near(it.tw||[]) ? 1 : 0;
+}
+function tryAnswer(s){
+  if(R.locked) return;
+  const cur=R.order[R.pos];
+  if(R.cfg.tiers){ const t=tierFor(s,R.cfg.items[cur]); if(t) return resolve(true,"",t); }
+  if(R.cfg.tiers){ // назвал другого столпа (или его титул)
+    const other=R.cfg.items.find((h,i)=>i!==cur&&tierFor(s,h));
+    if(other){ const m=$("gMsg"); m.textContent=`Нет, это не ${tierFor(s,other)===1?other.title:other.ru}`; m.className="msg bad"; $("gInp").value=""; return; }
+  }
+  const h=hits(s,R.idx), dh=hits(s,R.didx);
+  const bestO=dh.size?Math.min(...dh.values()):Infinity;
+  if(h.has(cur) && h.get(cur)<=bestO) return resolve(true);
+  const name = h.size ? R.cfg.items[[...h].sort((a,b)=>a[1]-b[1])[0][0]].ru
+    : dh.size ? R.cfg.distract[[...dh].sort((a,b)=>a[1]-b[1])[0][0]].ru : null;
+  const m=$("gMsg"); m.textContent = name ? `Нет, это не ${name}` : "Не узнали, попробуй ещё"; m.className="msg bad";
+  const inp=$("gInp"); inp.value=""; inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake");
+}
+function runSubmit(){
+  if(!R||R.locked) return;
+  if(mode==="ac"){ const f=$("gSugg").querySelector(".hl")||$("gSugg").querySelector("div"); if(f){ f.click(); return; } }
+  const s=norm($("gInp").value); if(s.length<1) return;
+  tryAnswer(s);
+}
+function hideRunSugg(){ $("gSugg").style.display="none"; $("gSugg").innerHTML=""; }
+$("gGo").onclick=runSubmit;
+$("gSkip").onclick=()=>R&&resolve(false,"Пропуск");
+$("gInp").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){ e.preventDefault(); runSubmit(); }
+  else if(mode==="ac"&&(e.key==="ArrowDown"||e.key==="ArrowUp")){
+    e.preventDefault(); const it=[...$("gSugg").children]; if(!it.length) return;
+    let k=it.findIndex(x=>x.classList.contains("hl")); it[k]?.classList.remove("hl");
+    k=(k+(e.key==="ArrowDown"?1:-1)+it.length)%it.length; it[k].classList.add("hl");
+  }
+});
+$("gInp").addEventListener("input",()=>{
+  if(mode!=="ac"||!R) return;
+  const s=norm($("gInp").value), box=$("gSugg"); if(s.length<2){ hideRunSugg(); return; }
+  const list=R.ac.filter(p=>p.keys.some(k=>k.startsWith(s))).slice(0,6);
+  if(!list.length){ hideRunSugg(); return; }
+  box.innerHTML=""; box.style.display="block";
+  list.forEach(p=>{
+    const d=document.createElement("div"); d.innerHTML=`${p.ru} <small>${p.en}</small>`;
+    d.onclick=()=>{ hideRunSugg(); tryAnswer(norm(p.ru)); };
+    box.appendChild(d);
+  });
+});
+function setRunPh(){ $("gInp").placeholder = mode==="ac" ? "Начни писать и выбери из списка" : "Кто это?"; hideRunSugg(); }
+setRunPh();
+
+function endRun(){
+  const cfg=R.cfg, x=R.log.filter(l=>l.ok).length, n=R.log.length;
+  $("gRun").style.display="none"; $("gEnd").style.display="block";
+  $("gRes").textContent=`${x} из ${n}`;
+  $("gResPts").textContent = cfg.tiers ? `Баллы: ${R.pts} из ${n*3}` : `Очки: ${R.pts}`;
+  // рейтинг пока только на этом устройстве: общий появится с сервером
+  const key="runs_"+cfg.id+"_"+level;
+  let hist=[]; try{ hist=JSON.parse(localStorage.getItem(key)||"[]"); }catch(e){}
+  hist.push(R.pts); try{ localStorage.setItem(key, JSON.stringify(hist.slice(-50))); }catch(e){}
+  const place=[...hist].sort((a,b)=>b-a).indexOf(R.pts)+1;
+  $("gRank").textContent = hist.length>1 ? `Место ${place} из ${hist.length} твоих попыток. Общий рейтинг игроков заработает, когда подключим сервер.`
+    : "Общий рейтинг игроков заработает, когда подключим сервер.";
+  $("gAns").innerHTML=R.log.map(l=>`<div><span>${l.ru}</span><span class="${l.ok?"y":"n"}">${!l.ok?"✗":cfg.tiers?"+"+l.got:"✓ "+l.secs.toFixed(1)+" с"}</span></div>`).join("");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+$("gAgain").onclick=()=>startRun(R.cfg);
+$("gBack").onclick=()=>{ $("gEnd").style.display="none"; $("gPick").style.display="block"; };
+$("gMenu").onclick=()=>{ if(R){ clearInterval(R.timer); R.locked=true; }
+  $("gRun").style.display="none"; $("gPick").style.display="block"; };
+$("gShare").onclick=()=>shareText(`«${R.cfg.name}»: угадал ${R.log.filter(l=>l.ok).length} из ${R.log.length}, ${R.pts} очков. Сможешь больше?`);
+
+// ================= ЦАРЬ ГОРЫ =================
+const hue=s=>{ let h=0; for(const c of s) h=(h*31+c.charCodeAt(0))|0; return `hsl(${Math.abs(h)%360} 55% 42%)`; };
+let K=null; // {set, champ, next, streak, beaten:[], busy}
+
+$("sets").innerHTML = SETS.map((s,k)=>`
+  <button class="setcard pool" data-k="${k}">
+    <div class="crowd">${shuffle(s.list.filter(f=>f.img!=="-")).slice(0,10).map(f=>`<img src="img/${f.img}.png" alt="">`).join("")}</div>
+    <div><b>${s.name}</b><small>${s.list.length} бойцов</small></div>
+  </button>`).join("");
+document.querySelectorAll("#sets .setcard").forEach(b=>b.onclick=()=>startKing(+b.dataset.k));
+// толпа: каждый заходит на соседа на ~половину своей ширины, всё вместе ужимается под карточку
+function packCrowd(cr){
+  const imgs=[...cr.querySelectorAll("img")]; if(!imgs.every(i=>i.complete)) return;
+  const H=cr.clientHeight, max=cr.clientWidth*0.8;
+  const ws=imgs.map((i,k)=>i.naturalWidth/i.naturalHeight*H*(k%2?.88:1));
+  const total=ws.reduce((a,w)=>a+w*.5,0)+ws[ws.length-1]*.5, k=Math.min(1,max/total);
+  imgs.forEach((i,n)=>{ const w=ws[n]*k; i.style.width=w+"px"; i.style.height=(n%2?.88:1)*H*k+"px"; i.style.marginLeft=n?(-w*.5)+"px":"0"; });
+}
+document.querySelectorAll(".crowd").forEach(cr=>{
+  cr.querySelectorAll("img").forEach(i=>i.addEventListener("load",()=>packCrowd(cr)));
+  packCrowd(cr);
+});
+
+function fill(el, f){
+  const c=CHARS[f.c]; el.style.setProperty("--c",hue(f.c));
+  setArt(el,f); el.querySelector(".cap b").textContent=c.ru;
+}
+// без арта: прячем картинку, показываем большую букву
+function setArt(el,f){
+  const img=el.querySelector("img"), none=f.img==="-", c=CHARS[f.c];
+  // слева должен смотреть вправо, справа — влево
+  const side = el.id==="kChamp" ? (K&&K.side==="A"?"fA":"fB") : el.id;
+  const flip = side==="fA" ? (c.looks==="left"?-1:1) : side==="fB" ? (c.looks==="right"?-1:1) : 1;
+  const F=88*(c.cls||1), part=c.part||1, boxh=F*part/(1-(c.top||0));
+  el.style.setProperty("--flip",flip); el.style.setProperty("--boxh",boxh+"%"); el.style.setProperty("--boxb",F*(1-part)+"%");
+  el.classList.toggle("fade",!!c.fade);
+  img.style.display=none?"none":""; if(!none) img.src=`img/${f.img}.png`;
+  el.classList.toggle("noimg",none); el.dataset.letter=CHARS[f.c].ru[0];
+}
+function startKing(k){
+  const s=SETS[k];
+  K={k, set:s, champ:s.list[0], side:"A", next:1, beaten:{}, busy:false};
+  $("kPick").style.display="none"; $("kEnd").style.display="none"; $("kPlay").style.display="block";
+  $("kSet").textContent=s.name; showRound();
+  musicSync(); // запуск прямо из нажатия: iPhone иначе не даст играть звук
+}
+function showRound(){
+  const s=K.set; $("kRound").textContent=`${K.next} из ${s.list.length-1}`;
+  // царь горы остаётся на своей стороне, новый выезжает с другой
+  const champEl=$(K.side==="A"?"fA":"fB"), newEl=$(K.side==="A"?"fB":"fA");
+  const first=K.next===1;
+  if(first) fill(champEl,K.champ);
+  fill(newEl,s.list[K.next]);
+  champEl.querySelector(".crown span").textContent=(K.beaten[K.champ.c]||[]).length;
+  champEl.querySelector(".crown").style.display = first ? "none" : "block";
+  newEl.querySelector(".crown").style.display="none";
+  ["fA","fB"].forEach(id=>$(id).classList.remove("win","lose","enterL","enterR"));
+  void newEl.offsetWidth; newEl.classList.add(K.side==="A"?"enterR":"enterL");
+}
+function pick(side){
+  if(!K||K.busy) return; K.busy=true;
+  const ch=K.set.list[K.next], champWins = side===K.side;
+  const win = champWins ? K.champ : ch, lose = champWins ? ch : K.champ;
+  (K.beaten[win.c] ||= []).push(lose.c);
+  $(side==="A"?"fA":"fB").classList.add("win"); $(side==="A"?"fB":"fA").classList.add("lose");
+  haptic("success");
+  setTimeout(()=>{
+    K.champ=win; K.side=side; K.next++; K.busy=false;
+    K.next>=K.set.list.length ? endKing() : showRound();
+  },650);
+}
+$("fA").onclick=()=>pick("A"); $("fB").onclick=()=>pick("B");
+
+function endKing(){
+  const s=K.set, w=K.champ, c=CHARS[w.c], beat=K.beaten[w.c]||[];
+  $("kPlay").style.display="none"; $("kEnd").style.display="block";
+  $("kChamp").style.setProperty("--c",hue(w.c)); setArt($("kChamp"),w);
+  $("kName").textContent=c.ru;
+  $("kStat").textContent = beat.length ? `Твой царь горы. Уложил подряд: ${beat.length}` : "Твой царь горы";
+  $("kPath").innerHTML=beat.map(id=>`<span>${CHARS[id].ru}</span>`).join("");
+  $("kGuest").textContent = !s.guest ? "" : `${s.guest} в выпуске победил ${CHARS[s.winner].ru}` + (s.winner===w.c?". Совпало!":"");
+  window.scrollTo({top:0,behavior:"smooth"});
+  celebrate();
+}
+$("kAgain").onclick=()=>startKing(K.k);
+$("kOther").onclick=()=>{ $("kEnd").style.display="none"; $("kPick").style.display="block"; };
+$("kMenu").onclick=()=>{ K=null; $("kPlay").style.display="none"; $("kPick").style.display="block"; };
+$("kShare").onclick=()=>shareText(`Мой царь горы: ${CHARS[K.champ.c].ru}. А у тебя кто?`);
+
+// ================= МУЗЫКА В ЦАРЕ ГОРЫ =================
+// тихий фон во время боёв; вкл/выкл и громкость запоминаются
+const music=new Audio("audio/battle.m4a"); music.loop=true; music.preload="none";
+let mOn=true, mVol=20;
+try{ mOn=localStorage.getItem("musicOn")!=="0"; mVol=+(localStorage.getItem("musicVol")??20); }catch(e){}
+const inBattle=()=>$("kPlay").style.display==="block" && $("king").classList.contains("on");
+function musicSync(){
+  music.volume=mVol/100;
+  $("mToggle").textContent = mOn&&mVol>0 ? "🔊" : "🔇"; $("mVol").value=mVol;
+  if(mOn && mVol>0 && inBattle() && !document.hidden) music.play().catch(()=>{}); else music.pause();
+}
+const musicSave=()=>{ try{ localStorage.setItem("musicOn",mOn?"1":"0"); localStorage.setItem("musicVol",mVol); }catch(e){} };
+$("mToggle").onclick=()=>{ mOn=!mOn; if(mOn&&mVol===0) mVol=20; musicSave(); musicSync(); };
+$("mVol").oninput=e=>{ mVol=+e.target.value; mOn=mVol>0; musicSave(); musicSync(); };
+document.addEventListener("visibilitychange",musicSync);
+setInterval(musicSync,500); // старт/стоп при входе в бой, финале, меню и смене вкладки
+musicSync();
+
+// ================= ПРАЗДНИК НА WINNER =================
+const applause=new Audio("audio/applause.mp3");
+function celebrate(){
+  if(mOn&&mVol>0){ applause.currentTime=0; applause.volume=0.22; applause.play().catch(()=>{}); } // −13 дБ, как в батлах
+  haptic("success");
+  const cv=document.createElement("canvas"); cv.className="confetti"; document.body.appendChild(cv);
+  const W=cv.width=innerWidth*devicePixelRatio, H=cv.height=innerHeight*devicePixelRatio, d=devicePixelRatio, ctx=cv.getContext("2d");
+  const cols=["#ffd23f","#ff4d6d","#2ecc71","#4fb3ff","#c77dff","#ffffff"], P=[];
+  const burst=(x,y,n,sp,up)=>{ for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, v=(Math.random()*.6+.4)*sp;
+    P.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-up,r:Math.random()*Math.PI,vr:(Math.random()-.5)*.3,
+      w:(Math.random()*6+4)*d,h:(Math.random()*10+6)*d,c:cols[i%cols.length],rib:Math.random()<.3,life:1}); } };
+  burst(0,H*.55,70,16*d,10*d); burst(W,H*.55,70,16*d,10*d);          // хлопушки с боков
+  [[.25,.25],[.75,.2],[.5,.12]].forEach(([fx,fy],k)=>setTimeout(()=>burst(W*fx,H*fy,45,7*d,0),350+k*350)); // салют
+  const t0=performance.now();
+  (function frame(t){
+    ctx.clearRect(0,0,W,H);
+    P.forEach(p=>{ p.vy+=.25*d; p.vx*=.985; p.vy*=.985; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c;
+      if(p.rib){ ctx.fillRect(-p.w/4,-p.h*1.2,p.w/2,p.h*2.4); } else ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h*Math.abs(Math.cos(p.r*2)));
+      ctx.restore(); });
+    if(t-t0<4500) requestAnimationFrame(frame); else cv.remove();
+  })(t0);
+}
+
+// ================= ВКЛАДКИ, TELEGRAM =================
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  if(R && $("gRun").style.display!=="none") $("gMenu").click(); // уход с вкладки = выход в меню
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===t));
+  document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===t.dataset.s));
+});
+if(tg){
+  tg.ready(); tg.expand();
+  const p=tg.themeParams||{}, r=document.documentElement.style;
+  if(p.bg_color) r.setProperty("--bg",p.bg_color);
+  if(p.secondary_bg_color) r.setProperty("--card",p.secondary_bg_color);
+  if(p.text_color) r.setProperty("--text",p.text_color);
+  if(p.hint_color) r.setProperty("--muted",p.hint_color);
+  if(p.button_color) r.setProperty("--accent",p.button_color);
+  try{ tg.disableVerticalSwipes(); }catch(e){} // свайп вниз не закрывает игру посреди раунда
+  // системная кнопка «Назад» в шапке Telegram ведёт в меню
+  const backs=[["gRun","gMenu"],["gEnd","gBack"],["gGrid","gGridBack"],["kPlay","kMenu"],["kEnd","kOther"]];
+  const open=()=>backs.find(([v])=>$(v).style.display==="block" && $(v).closest(".screen").classList.contains("on"));
+  tg.BackButton.onClick(()=>{ const b=open(); if(b) $(b[1]).click(); });
+  setInterval(()=>{ open() ? tg.BackButton.show() : tg.BackButton.hide(); },300);
+}
+</script>
+</body>
+</html>
