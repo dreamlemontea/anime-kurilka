@@ -390,7 +390,7 @@ document.querySelector(`input[name=mode][value=${mode}]`).checked=true;
 const tg = window.Telegram && Telegram.WebApp && Telegram.WebApp.initData ? Telegram.WebApp : null;
 const haptic = t => { try{ tg && tg.HapticFeedback.notificationOccurred(t); }catch(e){} };
 // Ссылка на мини-приложение вида https://t.me/имя_бота/имя_приложения — вписать после создания в BotFather
-const TG_APP_LINK = "";
+const TG_APP_LINK = "https://t.me/anime_kurilka_bot/victorina";
 const shareText = async text => {
   const url=TG_APP_LINK || (location.href.startsWith("http")?location.href.split("#")[0]:"");
   try{
