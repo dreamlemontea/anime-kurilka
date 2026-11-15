@@ -274,7 +274,7 @@ const CHARS = {
   thorfinn:{ru:"Торфинн", en:"Thorfinn", img:"ch/thorfinn", al:["торфин"], looks:"right", top:0.016},
   todo:{ru:"Тодо Аой", en:"Aoi Todo", img:"ch/todo", al:[], looks:"left", top:0.029},
   guy:{ru:"Майто Гай", en:"Might Guy", img:"ch/guy", al:["гай","maito gai"], looks:"right", top:0.003},
-  maki:{ru:"Маки Дзэнин", en:"Maki Zenin", img:"ch/maki", al:["зенин","maki zen'in"], looks:"right", top:0.0, cls:0.92, part:0.5, fade:true},
+  maki:{ru:"Маки Дзэнин", en:"Maki Zenin", img:"ch/maki2", al:["зенин","maki zen'in"], looks:"front", top:0.004, cls:0.92},
   yoh:{ru:"Йо Асакура", en:"Yoh Asakura", img:"ch/yoh", al:["йо","yoh","yo asakura"], looks:"right", top:0.007, cls:0.92},
   itachi:{ru:"Итачи Учиха", en:"Itachi Uchiha", img:"ch/itachi", al:[], looks:"right", top:0.006},
   rengoku:{ru:"Кёджуро Ренгоку", en:"Kyojuro Rengoku", img:"ch/rengoku", al:["кёдзюро","ренгоку","кеджуро"], looks:"right", top:0.009},
@@ -283,7 +283,7 @@ const CHARS = {
   ren:{ru:"Рен Тао", en:"Ren Tao", img:"ch/ren", al:["ленни","len tao"], looks:"left", top:0.079, cls:0.92},
   byakuya:{ru:"Бьякуя Кучики", en:"Byakuya Kuchiki", img:"ch/byakuya", al:[], looks:"left", top:0.011},
   doma:{ru:"Дома", en:"Doma", img:"ch/doma", al:["доума","douma"], looks:"left", top:0.017},
-  akaza:{ru:"Аказа", en:"Akaza", img:"ch/akaza", al:[], looks:"front", top:0.019, cls:0.62},
+  akaza:{ru:"Аказа", en:"Akaza", img:"ch/akaza2", al:[], looks:"front", top:0.006, cls:0.9},
   naruto:{ru:"Наруто Узумаки", en:"Naruto Uzumaki", img:"ch/naruto", al:[], looks:"right", top:0.023, cls:0.92},
   luffy:{ru:"Монки Д. Луффи", en:"Monkey D. Luffy", img:"ch/luffy", al:["луффи"], looks:"right", top:0.001},
   madara:{ru:"Мадара Учиха", en:"Madara Uchiha", img:"ch/madara", al:[], looks:"front", top:0.019},
@@ -293,6 +293,13 @@ const CHARS = {
   guts:{ru:"Гатс", en:"Guts", al:[]},
   katara:{ru:"Катара", en:"Katara", al:[]},
   reze:{ru:"Резе", en:"Reze", al:[]},
+  vash:{ru:"Вэш Ураган", en:"Vash the Stampede", img:"ch/vash", al:["вэш","ваш ураган","триган"], looks:"left", top:0.007},
+  dante:{ru:"Данте", en:"Dante", img:"ch/dante", al:[], looks:"left", top:0.114},
+  okarun:{ru:"Окарун", en:"Okarun", img:"ch/okarun", al:["кен такакура","такакура"], looks:"right", top:0.084, cls:0.92},
+  geto:{ru:"Сугуру Гето", en:"Suguru Geto", img:"ch/geto", al:["гето","гэто"], looks:"right", top:0.012},
+  tanjiro:{ru:"Танджиро Камадо", en:"Tanjiro Kamado", img:"ch/tanjiro", al:["танжиро","тандзиро"], looks:"right", top:0.239, cls:0.92},
+  okabe:{ru:"Ринтаро Окабэ", en:"Rintaro Okabe", img:"ch/okabe", al:["окабе","окарин"], looks:"left", top:0.009},
+  yuji:{ru:"Юдзи Итадори", en:"Yuji Itadori", img:"ch/yuji", al:["юджи","итадори"], looks:"right", top:0.009, cls:0.92},
   dio:{ru:"Дио Брандо", en:"Dio Brando", al:["дио"]},
 };
 // Наборы «царя горы» — твои пулы по возрастанию силы; арт у персонажа один на все пулы
@@ -305,6 +312,8 @@ const SETS = [
    list:"thorfinn levi todo guy maki yoh itachi rengoku ichigo makima muzan shanks gojo jinwoo saitama sukuna eren light"},
   {name:"Пул 4", note:"",
    list:"baki guts giyu katara reze itachi akaza luffy dio kenpachi sukuna shanks madara gojo ichigo jinwoo saitama light"},
+  {name:"Пул 5", note:"батл №33", winner:"saitama",
+   list:"naruto vash sukuna eren geto yoh yuji levi okarun toji tanjiro dante luffy saitama okabe"},
 ].map(s=>({...s, list:s.list.split(" ").map(c=>({c, img:CHARS[c].img||"-"}))}));
 
 const HASHIRA = [
@@ -781,7 +790,7 @@ function endKing(){
   $("kName").textContent=c.ru;
   $("kStat").textContent = beat.length ? `Твой царь горы. Уложил подряд: ${beat.length}` : "Твой царь горы";
   $("kPath").innerHTML=beat.map(id=>`<span>${CHARS[id].ru}</span>`).join("");
-  $("kGuest").textContent = !s.guest ? "" : `${s.guest} в выпуске победил ${CHARS[s.winner].ru}` + (s.winner===w.c?". Совпало!":"");
+  $("kGuest").textContent = !s.winner ? "" : `${s.guest?s.guest+" в выпуске":"В выпуске"} победил ${CHARS[s.winner].ru}` + (s.winner===w.c?". Совпало!":"");
   window.scrollTo({top:0,behavior:"smooth"});
   celebrate();
 }
