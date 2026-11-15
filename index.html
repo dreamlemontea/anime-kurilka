@@ -862,6 +862,9 @@ if(tg){
   tg.BackButton.onClick(()=>{ const b=open(); if(b) $(b[1]).click(); });
   setInterval(()=>{ open() ? tg.BackButton.show() : tg.BackButton.hide(); },300);
 }
+// Ссылка сразу на пул: t.me/anime_kurilka_bot/victorina?startapp=pool5 (или ?pool=5 на сайте)
+{ const sp=(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.start_param)||new URLSearchParams(location.search).get("pool")||"";
+  const n=+(String(sp).match(/\d+/)||[0])[0]; if(n>=1&&n<=SETS.length) startKing(n-1); }
 </script>
 </body>
 </html>
