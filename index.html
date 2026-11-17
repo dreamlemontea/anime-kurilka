@@ -159,6 +159,69 @@ input[type=text]:focus{border-color:var(--accent)}
 .set label{display:flex;gap:10px;align-items:flex-start;padding:8px 0}
 .set input{margin-top:4px;accent-color:var(--accent)}
 .set small{color:var(--muted);display:block}
+
+/* ===== УГАДАЙ СТОЛПА (стиль выпуска №35: чёрный, красный мазок, кисть roadrage, белый круг) ===== */
+@font-face{font-family:"roadrage";src:url(fonts/roadrage.ttf) format("truetype");font-display:swap}
+body.stolpmode{background:#0b0b0d}
+body.stolpmode .tabs{display:none}
+#stolp{--red:#c3161c;--green:#3dff6e}
+#stolp .logo{display:block;width:min(78%,320px);margin:4px auto 6px}
+#stolp .rules{background:#fff;color:#111;border-radius:22px;padding:14px 16px;margin:6px 0 12px}
+#stolp .rules b.h{display:block;text-align:center;font-weight:900;font-size:22px;margin-bottom:6px}
+#stolp .rules div{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-top:1px solid #e4e4ea;font-weight:700}
+#stolp .rules div:first-of-type{border-top:none}
+#stolp .rules div.all{border-top:3px solid #111;font-weight:900}
+#stolp .pt{background:var(--green);color:#111;border-radius:10px;padding:2px 10px;font-weight:900;white-space:nowrap}
+#stolp .rules p{margin:8px 0 0;font-size:14px;color:#444;text-align:center}
+#stolp .seg{grid-template-columns:repeat(3,1fr)}
+#stolp .seg button{background:#1a1a1f;padding:10px 4px}
+html:has(body.stolpmode){background:#0b0b0d}
+#stolp .seg button.on{border-color:var(--red)}
+#stolp .btn{background:var(--red)}
+#stolp .btn.ghost{background:#1f1f25}
+#stolp .prog{display:flex;justify-content:space-between;font-size:14px;color:#bbb;margin-bottom:6px}
+#stolp .prog b{color:#fff}
+#sStage{position:relative;aspect-ratio:1/1;max-height:42vh;width:100%;margin:0 auto 10px;overflow:hidden}
+#sStage .circ{position:absolute;left:50%;top:50%;width:86%;transform:translate(-50%,-50%)}
+#sStage .fig{position:absolute;left:50%;bottom:0;height:94%;transform:translateX(-50%);max-width:none;
+  filter:brightness(0) drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff)}
+#sStage .fig.wait{visibility:hidden}
+#sStage.done .fig{transition:filter .5s}
+#sStage.done.right .fig{filter:drop-shadow(3px 0 0 var(--green)) drop-shadow(-3px 0 0 var(--green)) drop-shadow(0 3px 0 var(--green)) drop-shadow(0 -3px 0 var(--green))}
+#sStage.done.wrong .fig{filter:drop-shadow(3px 0 0 var(--red)) drop-shadow(-3px 0 0 var(--red)) drop-shadow(0 3px 0 var(--red)) drop-shadow(0 -3px 0 var(--red))}
+#sStage .plate{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);background:#fff;color:#111;border-radius:14px;
+  padding:6px 14px;text-align:center;font-weight:900;font-size:18px;white-space:nowrap;display:none;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+#sStage .plate small{display:block;font-size:13px;font-weight:700;color:#555}
+#sStage .badge{position:absolute;right:8px;top:8px;display:none;font-size:18px}
+#sStage.done .plate,#sStage.done .badge{display:block}
+#sStage.done .plate{animation:plateIn .35s ease-out}
+@keyframes plateIn{from{transform:translate(-50%,40px);opacity:0}}
+#sFields .f{margin-bottom:9px}
+#sFields label{display:flex;justify-content:space-between;font-size:13px;color:#bbb;margin:0 2px 4px;font-weight:700}
+#sFields label .res{font-weight:800}
+#sFields label .res.y{color:var(--green)}#sFields label .res.n{color:#ff5c5c}
+#sFields input[type=text]{padding:11px 12px;font-size:16px;background:#16161b;border-color:#2c2c34}
+#sFields .chips{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#sFields .chips button{background:#1f1f25;border-radius:10px;padding:10px 6px;font-weight:700;font-size:14px;border:2px solid transparent}
+#sFields .chips button.sel{border-color:#fff}
+#sFields .chips button.y{background:var(--green);color:#111}
+#sFields .chips button.n{background:var(--red)}
+#sFields input.y{border-color:var(--green)}#sFields input.n{border-color:#ff5c5c}
+#sTimer{height:6px;border-radius:3px;background:#1f1f25;overflow:hidden;margin-bottom:8px}
+#sTimer div{height:100%;width:100%;background:var(--red);transition:width .1s linear}
+/* табло, как в конце выпуска */
+#sEnd .ttl{font-family:roadrage,sans-serif;text-align:center;line-height:.95;margin:6px 0 2px}
+#sEnd .ttl .a{font-size:44px;color:#fff;display:block}
+#sEnd .ttl .b{font-size:54px;color:var(--red);display:block;text-shadow:0 0 1px #fff}
+#sEnd .katana{display:block;width:72%;margin:-6px auto 10px}
+.board{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.board .r{display:flex;align-items:center;gap:10px;padding:9px 16px;background:#fff;color:#111;border:3px solid #000;
+  transform:skewX(-10deg);font-weight:900}
+.board .r > *{transform:skewX(10deg)}
+.board .r.lead{background:url(img/stolp/brush-lead.png) center/100% 100% no-repeat;border-color:transparent;color:#fff}
+.board .r .n{width:18px}.board .r .nm{flex:1}
+.board .r .sc{font-size:20px}.board .r .sc small{font-size:12px;opacity:.7}
+#sEnd .answers div span.y{color:var(--green)}
 </style>
 </head>
 <body>
@@ -235,6 +298,47 @@ input[type=text]:focus{border-color:var(--accent)}
   <div id="gGrid" style="display:none">
     <button class="back" id="gGridBack">← К списку</button>
     <div id="gridSil"></div><div id="gridHashira"></div>
+  </div>
+</section>
+
+
+<!-- УГАДАЙ СТОЛПА: отдельная игра по выпуску №35 (ссылка ?startapp=stolp) -->
+<section class="screen" id="stolp">
+  <div id="sIntro">
+    <button class="back" id="sOut">← Все игры</button>
+    <img class="logo" src="img/stolp/logo.png" alt="Угадай столпа">
+    <div class="rules">
+      <b class="h">Правила</b>
+      <div>Имя <span class="pt">+1 балл</span></div>
+      <div>Фамилия <span class="pt">+1 балл</span></div>
+      <div>Столп чего <span class="pt">+1 балл</span></div>
+      <div class="all">Всё вместе <span class="pt">+3 балла</span></div>
+      <p>9 столпов, 30 секунд на каждого. Опечатки прощаются. Женя в выпуске набрал 17 из 27.</p>
+    </div>
+    <div class="seg" id="sLevel">
+      <button data-l="easy">Лёгкий<small>выбрать из 4</small></button>
+      <button data-l="mix">Микс<small>то выбрать, то вписать</small></button>
+      <button data-l="hard">Сложный<small>всё вписать</small></button>
+    </div>
+    <div class="row"><button class="btn" id="sStart">Начать</button></div>
+  </div>
+  <div id="sPlay" style="display:none">
+    <div class="topline"><button class="back" id="sMenu">← Меню</button>
+      <div class="music"><button id="sToggle" aria-label="Музыка">🔊</button><input type="range" id="sVol" min="0" max="100" aria-label="Громкость музыки"></div></div>
+    <div class="prog"><span>Столп <b id="sNum"></b></span><span>Баллы <b id="sPts">0</b></span></div>
+    <div id="sTimer"><div id="sBar"></div></div>
+    <div id="sStage"><img class="circ" src="img/stolp/circle.png" alt=""><img class="fig" alt="" draggable="false"><div class="badge"><span class="pt"></span></div><div class="plate"></div></div>
+    <div id="sFields"></div>
+    <div class="row" id="sAsk"><button class="btn" id="sGo">Ответить</button><button class="btn ghost" id="sSkip">Не знаю</button></div>
+    <div class="row" id="sNextRow" style="display:none"><button class="btn" id="sNext">Дальше →</button></div>
+  </div>
+  <div id="sEnd" style="display:none">
+    <div class="ttl"><span class="a">угадай</span><span class="b">СТОЛПА</span></div>
+    <img class="katana" src="img/stolp/katana.png" alt="">
+    <div class="board" id="sBoard"></div>
+    <div class="row"><button class="btn" id="sAgain">Ещё раз</button><button class="btn ghost" id="sShare">Поделиться</button></div>
+    <div class="row"><button class="btn ghost" id="sBack">К играм</button></div>
+    <div class="answers" id="sAns" style="margin-top:14px"></div>
   </div>
 </section>
 
@@ -400,8 +504,8 @@ const tg = window.Telegram && Telegram.WebApp && Telegram.WebApp.initData ? Tele
 const haptic = t => { try{ tg && tg.HapticFeedback.notificationOccurred(t); }catch(e){} };
 // Ссылка на мини-приложение вида https://t.me/имя_бота/имя_приложения — вписать после создания в BotFather
 const TG_APP_LINK = "https://t.me/anime_kurilka_bot/victorina";
-const shareText = async text => {
-  const url=TG_APP_LINK || (location.href.startsWith("http")?location.href.split("#")[0]:"");
+const shareText = async (text, app) => {
+  const url=(TG_APP_LINK ? TG_APP_LINK+(app?"?startapp="+app:"") : (location.href.startsWith("http")?location.href.split("#")[0]:""));
   try{
     if(tg) tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
     else if(navigator.share) await navigator.share({text,url});
@@ -547,8 +651,7 @@ const RUNS = [
    items:CHAR_LIST, distract:[...OTHERS,...HASHIRA], view:"pic", n:10, sec:10},
   {id:"sil", ico:"👤", name:"Кто это? Силуэт", desc:"Сложнее: только силуэт · 10 персонажей · 10 с",
    items:CHAR_LIST, distract:[...OTHERS,...HASHIRA], view:"sil", n:10, sec:10},
-  {id:"hashira", ico:"⚔️", name:"Столпы", desc:"Силуэт столпа · 9 столпов · 15 с · имя и фамилия 3 балла, одно из них 2, только титул 1",
-   items:HASHIRA, distract:[...OTHERS,...CHAR_LIST], view:"sil", n:9, sec:15, tiers:true},
+  {id:"stolp", ico:"⚔️", name:"Угадай столпа", desc:"Как в выпуске с Женей: силуэт, имя, фамилия и столп чего · 9 столпов · 30 с", open:true},
   {id:"gridSil", ico:"🧩", name:"Все силуэты сразу", desc:"9 силуэтов на экране, без таймера", grid:true},
   {id:"gridHashira", ico:"📋", name:"Все столпы сразу", desc:"9 пустых слотов, без таймера", grid:true},
 ];
@@ -556,6 +659,7 @@ $("gList").innerHTML = RUNS.map((r,k)=>`<button class="setcard" data-k="${k}"><d
   <div><b>${r.name}</b><small>${r.desc}</small></div></button>`).join("");
 document.querySelectorAll("#gList .setcard").forEach(b=>b.onclick=()=>{
   const r=RUNS[+b.dataset.k];
+  if(r.open){ openStolp(); return; }
   if(r.grid){
     $("gPick").style.display="none"; $("gGrid").style.display="block";
     $("gridSil").style.display = r.id==="gridSil"?"block":"none";
@@ -581,14 +685,19 @@ function startRun(cfg){
     .map(p=>({...p, keys:[norm(p.ru),norm(p.en)].flatMap(n=>[n,...n.split(" ")])}))
     .sort((a,b)=>a.ru.localeCompare(b.ru,"ru"));
   $("gPick").style.display="none"; $("gEnd").style.display="none"; $("gRun").style.display="block";
+  R.order.forEach(i=>{ const it=cfg.items[i]; if(it.img){ const im=new Image(); im.src=`img/${it.img}.png`; } });
   $("gTitle").textContent=cfg.name; $("gPts").textContent=0; $("gPtsLab").textContent=cfg.tiers?"баллы":"очки";
   showItem();
 }
 function showItem(){
   const cfg=R.cfg, it=cfg.items[R.order[R.pos]], st=$("gStage");
+  // баг «висит прошлая картинка»: старый арт плавно перекрашивался в силуэт (transition .4s), а новый ещё грузился.
+  // Теперь: без анимации при смене, и картинка скрыта, пока новая не загрузится.
+  const img=st.querySelector("img"); img.style.transition="none"; img.style.visibility="hidden";
   st.className="stage "+cfg.view;
   if(cfg.view==="text"){ st.querySelector(".clue").innerHTML=`<b>${it.title}</b><small>Как зовут этого столпа?</small>`; }
-  else st.querySelector("img").src=`img/${it.img}.png`;
+  else { const src=`img/${it.img}.png`; img.onload=()=>{ img.style.visibility=""; requestAnimationFrame(()=>img.style.transition=""); };
+    img.src=src; if(img.complete&&img.naturalWidth) img.onload(); }
   st.querySelector(".reveal").innerHTML=it.ru+(it.title?`<small>${it.title}</small>`:"");
   $("gNum").textContent=`${R.pos+1} / ${R.order.length}`;
   $("gMsg").textContent=""; $("gMsg").className="msg";
@@ -805,17 +914,124 @@ const music=new Audio("audio/battle.m4a"); music.loop=true; music.preload="none"
 let mOn=true, mVol=20;
 try{ mOn=localStorage.getItem("musicOn")!=="0"; mVol=+(localStorage.getItem("musicVol")??20); }catch(e){}
 const inBattle=()=>$("kPlay").style.display==="block" && $("king").classList.contains("on");
+const stolpMusic=new Audio("audio/stolp.m4a"); stolpMusic.loop=true; stolpMusic.preload="none";
+const inStolp=()=>$("stolp").classList.contains("on") && $("sPlay").style.display==="block";
 function musicSync(){
-  music.volume=mVol/100;
-  $("mToggle").textContent = mOn&&mVol>0 ? "🔊" : "🔇"; $("mVol").value=mVol;
-  if(mOn && mVol>0 && inBattle() && !document.hidden) music.play().catch(()=>{}); else music.pause();
+  music.volume=mVol/100; stolpMusic.volume=Math.min(1,mVol/100*0.35); // опенинг заметно тише боёв
+  ["mToggle","sToggle"].forEach(id=>$(id).textContent = mOn&&mVol>0 ? "🔊" : "🔇"); $("mVol").value=$("sVol").value=mVol;
+  const on=mOn && mVol>0 && !document.hidden;
+  if(on && inBattle()) music.play().catch(()=>{}); else music.pause();
+  if(on && inStolp()) stolpMusic.play().catch(()=>{}); else stolpMusic.pause();
 }
 const musicSave=()=>{ try{ localStorage.setItem("musicOn",mOn?"1":"0"); localStorage.setItem("musicVol",mVol); }catch(e){} };
-$("mToggle").onclick=()=>{ mOn=!mOn; if(mOn&&mVol===0) mVol=20; musicSave(); musicSync(); };
-$("mVol").oninput=e=>{ mVol=+e.target.value; mOn=mVol>0; musicSave(); musicSync(); };
+$("mToggle").onclick=$("sToggle").onclick=()=>{ mOn=!mOn; if(mOn&&mVol===0) mVol=20; musicSave(); musicSync(); };
+$("mVol").oninput=$("sVol").oninput=e=>{ mVol=+e.target.value; mOn=mVol>0; musicSave(); musicSync(); };
 document.addEventListener("visibilitychange",musicSync);
 setInterval(musicSync,500); // старт/стоп при входе в бой, финале, меню и смене вкладки
 musicSync();
+
+
+// ================= УГАДАЙ СТОЛПА =================
+// Правила выпуска №35: имя +1, фамилия +1, «столп чего» +1 (всё вместе 3). Порядок как в выпуске (от узнаваемого к сложному).
+const STOLP_ORDER=[
+  ["rengoku","Кёджуро Ренгоку",2],["giyu","Гию Томиока",0],["shinobu","Шинобу Кочо",1],["tengen","Тенген Узуи",3],
+  ["mitsuri","Мицури Канроджи",4],["muichiro","Муичиро Токито",5],["sanemi","Санеми Шинадзугава",7],["gyomei","Гёмей Химеджима",6],["obanai","Обанай Игуро",8]];
+const STOLPS=STOLP_ORDER.map(([id,ru,h])=>{ const H=HASHIRA[h];
+  return {id, ru, img:`img/stolp/${id}.png`, first:H.first, last:[...H.last,"узуи"].filter((v,i,a)=>h===3||v!=="узуи"),
+    tw:H.tw, title:H.title, fname:ru.split(" ")[0], lname:ru.split(" ")[1], tname:H.title.replace("Столп ","")}; });
+const GUEST_SCORES=[{name:"Женя", score:17}]; // гости выпусков; новый выпуск = ещё строка
+STOLPS.forEach(x=>{ const i=new Image(); i.src=x.img; }); // заранее, чтобы картинка не запаздывала
+const FIELDS=[["name","Имя","fname","first"],["last","Фамилия","lname","last"],["title","Столп чего?","tname","tw"]];
+const pw=n=>n===1?"балл":n>=2&&n<=4?"балла":"баллов";
+let sLevel="mix"; try{ sLevel=localStorage.getItem("stolpLevel")||"mix"; }catch(e){}
+const paintS=()=>document.querySelectorAll("#sLevel button").forEach(b=>b.classList.toggle("on",b.dataset.l===sLevel));
+document.querySelectorAll("#sLevel button").forEach(b=>b.onclick=()=>{ sLevel=b.dataset.l; try{ localStorage.setItem("stolpLevel",sLevel); }catch(e){} paintS(); });
+paintS();
+let S=null; // {pos, pts, log, kinds, t0, timer, locked}
+const SEC=30;
+function sView(v){ ["sIntro","sPlay","sEnd"].forEach(id=>$(id).style.display=id===v?"block":"none"); window.scrollTo(0,0); }
+function openStolp(){
+  if(R && $("gRun").style.display!=="none") $("gMenu").click();
+  document.body.classList.add("stolpmode");
+  try{ document.fonts.load('40px roadrage','угадай СТОЛПА'); }catch(e){} // кисть для табло — заранее
+  document.querySelectorAll(".screen").forEach(x=>x.classList.toggle("on",x.id==="stolp"));
+  sView("sIntro");
+}
+function closeStolp(){
+  if(S){ clearInterval(S.timer); S=null; }
+  document.body.classList.remove("stolpmode");
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.s==="guess"));
+  document.querySelectorAll(".screen").forEach(x=>x.classList.toggle("on",x.id==="guess"));
+  $("gPick").style.display="block";
+}
+$("sOut").onclick=closeStolp; $("sBack").onclick=closeStolp;
+$("sStart").onclick=()=>{ S={pos:0,pts:0,log:[]}; $("sPts").textContent=0; sView("sPlay"); sShow(); };
+$("sAgain").onclick=()=>$("sStart").click();
+$("sMenu").onclick=()=>{ if(S){ clearInterval(S.timer); S=null; } sView("sIntro"); };
+function sShow(){
+  const x=STOLPS[S.pos], st=$("sStage"), fig=st.querySelector(".fig");
+  st.className=""; // сброс без анимации: старый арт не «доезжает» в новом вопросе
+  fig.classList.add("wait"); fig.onload=()=>fig.classList.remove("wait"); fig.src=x.img;
+  if(fig.complete && fig.naturalWidth && fig.src.endsWith(x.img)) fig.classList.remove("wait");
+  st.querySelector(".plate").innerHTML=`${x.ru}<small>${x.title}</small>`;
+  $("sNum").textContent=`${S.pos+1} / ${STOLPS.length}`;
+  // что выбирать, что вписывать
+  const kinds = sLevel==="easy" ? ["pick","pick","pick"] : sLevel==="hard" ? ["type","type","type"]
+    : (()=>{ let k; do{ k=FIELDS.map(()=>Math.random()<.5?"pick":"type"); }while(k.every(v=>v===k[0])); return k; })();
+  S.kinds=kinds; S.sel={};
+  $("sFields").innerHTML=FIELDS.map(([key,lab],i)=>`<div class="f" data-k="${key}"><label>${lab}<span class="res"></span></label>${
+    kinds[i]==="type" ? `<input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="${i===2?"done":"next"}" placeholder="${["например, Танджиро","например, Камадо","например, воды"][i]}">`
+    : `<div class="chips">${shuffle([x[FIELDS[i][2]],...shuffle(STOLPS.filter(o=>o!==x).map(o=>o[FIELDS[i][2]])).slice(0,3)])
+        .map(v=>`<button data-v="${v}">${v}</button>`).join("")}</div>`}</div>`).join("");
+  $("sFields").querySelectorAll(".chips").forEach(c=>c.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    if(S.locked) return; c.querySelectorAll("button").forEach(o=>o.classList.toggle("sel",o===b));
+    S.sel[c.closest(".f").dataset.k]=b.dataset.v; }));
+  const ins=[...$("sFields").querySelectorAll("input")];
+  ins.forEach((inp,k)=>inp.addEventListener("keydown",e=>{ if(e.key!=="Enter") return; e.preventDefault();
+    ins[k+1] ? ins[k+1].focus() : sAnswer(); }));
+  $("sAsk").style.display="flex"; $("sNextRow").style.display="none";
+  S.locked=false; S.t0=performance.now(); clearInterval(S.timer); S.timer=setInterval(sTick,100); sTick();
+}
+function sTick(){
+  const left=Math.max(0,SEC-(performance.now()-S.t0)/1000);
+  $("sBar").style.width=(left/SEC*100)+"%";
+  if(left<=0) sAnswer();
+}
+function sAnswer(skip){
+  if(!S||S.locked) return; S.locked=true; clearInterval(S.timer);
+  const x=STOLPS[S.pos], f=$("sFields");
+  // вписанное: слова из всех полей вместе (полное имя в одном поле тоже засчитается)
+  const toks=[...f.querySelectorAll("input")].flatMap(i=>norm(i.value).split(" ")).filter(t=>t&&!["столп","столпа"].includes(t));
+  const near=list=>toks.some(t=>list.some(v=>{ v=norm(v); return lev(t,v)<=tol(v.length); }));
+  const got={};
+  FIELDS.forEach(([key,,field,list],i)=>{
+    got[key] = skip ? false : S.kinds[i]==="pick" ? S.sel[key]===x[field] : near(x[list]);
+    const box=f.querySelector(`[data-k="${key}"]`), res=box.querySelector(".res");
+    res.textContent = got[key] ? "✓ +1" : `✗ ${x[field]}`; res.className="res "+(got[key]?"y":"n");
+    const inp=box.querySelector("input"); if(inp){ inp.classList.add(got[key]?"y":"n"); inp.disabled=true; }
+    box.querySelectorAll(".chips button").forEach(b=>{ if(b.dataset.v===x[field]) b.classList.add("y"); else if(b.classList.contains("sel")) b.classList.add("n"); });
+  });
+  const pts=Object.values(got).filter(Boolean).length;
+  S.pts+=pts; S.log.push({ru:x.ru, pts}); $("sPts").textContent=S.pts;
+  const st=$("sStage"); st.classList.add("done", pts?"right":"wrong");
+  st.querySelector(".badge .pt").textContent=`+${pts} ${pw(pts)}`;
+  haptic(pts?"success":"error");
+  document.activeElement && document.activeElement.blur && document.activeElement.blur();
+  $("sAsk").style.display="none"; $("sNextRow").style.display="flex";
+}
+$("sGo").onclick=()=>sAnswer(); $("sSkip").onclick=()=>sAnswer(true);
+$("sNext").onclick=()=>{ if(!S) return; S.pos++; S.pos>=STOLPS.length ? sEnd() : sShow(); };
+function sEnd(){
+  const me=S.pts;
+  let best=0; try{ best=Math.max(+localStorage.getItem("stolpBest")||0, me); localStorage.setItem("stolpBest",best); }catch(e){}
+  const rows=[...GUEST_SCORES.map(g=>({...g})), {name:"Ты", score:me, me:true}].sort((a,b)=>b.score-a.score || (a.me?-1:1));
+  $("sBoard").innerHTML=rows.map((r,i)=>`<div class="r${i===0?" lead":""}${r.me?" me":""}"><span class="n">${i+1}</span><span class="nm">${r.name}</span><span class="sc">${r.score}<small>/27</small></span></div>`).join("");
+  $("sAns").innerHTML=S.log.map(l=>`<div><span>${l.ru}</span><span class="${l.pts?"y":"n"}">${l.pts?"+"+l.pts:"✗"}</span></div>`).join("")
+    + (best>me ? `<div><span>Твой рекорд</span><span>${best}/27</span></div>` : "");
+  sView("sEnd");
+  if(me>=Math.max(...GUEST_SCORES.map(g=>g.score))) celebrate();
+}
+$("sShare").onclick=()=>shareText(`Угадай столпа: ${S?S.pts:0} из 27. Женя в выпуске набрал 17. Сможешь больше?`, "stolp");
 
 // ================= ПРАЗДНИК НА WINNER =================
 const applause=new Audio("audio/applause.mp3");
@@ -857,14 +1073,15 @@ if(tg){
   if(p.button_color) r.setProperty("--accent",p.button_color);
   try{ tg.disableVerticalSwipes(); }catch(e){} // свайп вниз не закрывает игру посреди раунда
   // системная кнопка «Назад» в шапке Telegram ведёт в меню
-  const backs=[["gRun","gMenu"],["gEnd","gBack"],["gGrid","gGridBack"],["kPlay","kMenu"],["kEnd","kOther"]];
+  const backs=[["sPlay","sMenu"],["sEnd","sBack"],["sIntro","sOut"],["gRun","gMenu"],["gEnd","gBack"],["gGrid","gGridBack"],["kPlay","kMenu"],["kEnd","kOther"]];
   const open=()=>backs.find(([v])=>$(v).style.display==="block" && $(v).closest(".screen").classList.contains("on"));
   tg.BackButton.onClick(()=>{ const b=open(); if(b) $(b[1]).click(); });
   setInterval(()=>{ open() ? tg.BackButton.show() : tg.BackButton.hide(); },300);
 }
 // Ссылка сразу на пул: t.me/anime_kurilka_bot/victorina?startapp=pool5 (или ?pool=5 на сайте)
-{ const sp=(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.start_param)||new URLSearchParams(location.search).get("pool")||"";
-  const n=+(String(sp).match(/\d+/)||[0])[0]; if(n>=1&&n<=SETS.length) startKing(n-1); }
+{ const sp=(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.start_param)||new URLSearchParams(location.search).get("pool")||new URLSearchParams(location.search).get("app")||"";
+  if(/stolp/i.test(sp)) openStolp();
+  else { const n=+(String(sp).match(/\d+/)||[0])[0]; if(n>=1&&n<=SETS.length) startKing(n-1); } }
 </script>
 </body>
 </html>
