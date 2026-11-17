@@ -313,7 +313,7 @@ html:has(body.stolpmode){background:#0b0b0d}
       <div>Фамилия <span class="pt">+1 балл</span></div>
       <div>Столп чего <span class="pt">+1 балл</span></div>
       <div class="all">Всё вместе <span class="pt">+3 балла</span></div>
-      <p>9 столпов, 30 секунд на каждого. Опечатки прощаются. Женя в выпуске набрал 17 из 27.</p>
+      <p>9 столпов, 30 секунд на каждого. Опечатки прощаются.</p>
     </div>
     <div class="seg" id="sLevel">
       <button data-l="easy">Лёгкий<small>выбрать из 4</small></button>
@@ -940,7 +940,7 @@ const STOLPS=STOLP_ORDER.map(([id,ru,h])=>{ const H=HASHIRA[h];
     tw:H.tw, title:H.title, fname:ru.split(" ")[0], lname:ru.split(" ")[1], tname:H.title.replace("Столп ","")}; });
 const GUEST_SCORES=[{name:"Женя", score:17}]; // гости выпусков; новый выпуск = ещё строка
 STOLPS.forEach(x=>{ const i=new Image(); i.src=x.img; }); // заранее, чтобы картинка не запаздывала
-const FIELDS=[["name","Имя","fname","first"],["last","Фамилия","lname","last"],["title","Столп чего?","tname","tw"]];
+const FIELDS=[["full","Имя и фамилия","ru"],["title","Столп чего?","tname"]]; // имя и фамилия в одной графе: у них легко перепутать, где что
 const pw=n=>n===1?"балл":n>=2&&n<=4?"балла":"баллов";
 let sLevel="hard"; try{ sLevel=localStorage.getItem("stolpLevel")||"hard"; }catch(e){} if(sLevel!=="easy") sLevel="hard";
 const paintS=()=>document.querySelectorAll("#sLevel button").forEach(b=>b.classList.toggle("on",b.dataset.l===sLevel));
@@ -975,10 +975,10 @@ function sShow(){
   st.querySelector(".plate").innerHTML=`${x.ru}<small>${x.title}</small>`;
   $("sNum").textContent=`${S.pos+1} / ${STOLPS.length}`;
   // что выбирать, что вписывать
-  const kinds = sLevel==="easy" ? ["pick","pick","pick"] : ["type","type","type"];
+  const kinds = FIELDS.map(()=>sLevel==="easy"?"pick":"type");
   S.kinds=kinds; S.sel={};
   $("sFields").innerHTML=FIELDS.map(([key,lab],i)=>`<div class="f" data-k="${key}"><label>${lab}<span class="res"></span></label>${
-    kinds[i]==="type" ? `<input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="${i===2?"done":"next"}" placeholder="${["например, Танджиро","например, Камадо","например, воды"][i]}">`
+    kinds[i]==="type" ? `<input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="${i===FIELDS.length-1?"done":"next"}" placeholder="${["например, Танджиро Камадо","например, воды"][i]}">`
     : `<div class="chips">${shuffle([x[FIELDS[i][2]],...shuffle(STOLPS.filter(o=>o!==x).map(o=>o[FIELDS[i][2]])).slice(0,3)])
         .map(v=>`<button data-v="${v}">${v}</button>`).join("")}</div>`}</div>`).join("");
   $("sFields").querySelectorAll(".chips").forEach(c=>c.querySelectorAll("button").forEach(b=>b.onclick=()=>{
@@ -998,17 +998,21 @@ function sTick(){
 function sAnswer(skip){
   if(!S||S.locked) return; S.locked=true; clearInterval(S.timer);
   const x=STOLPS[S.pos], f=$("sFields");
-  // вписанное: слова из всех полей вместе (полное имя в одном поле тоже засчитается)
-  const toks=[...f.querySelectorAll("input")].flatMap(i=>norm(i.value).split(" ")).filter(t=>t&&!["столп","столпа"].includes(t));
-  const near=list=>toks.some(t=>list.some(v=>{ v=norm(v); return lev(t,v)<=tol(v.length); }));
-  const got={};
-  FIELDS.forEach(([key,,field,list],i)=>{
-    got[key] = skip ? false : S.kinds[i]==="pick" ? S.sel[key]===x[field] : near(x[list]);
-    const box=f.querySelector(`[data-k="${key}"]`), res=box.querySelector(".res");
-    res.textContent = got[key] ? "✓ +1" : `✗ ${x[field]}`; res.className="res "+(got[key]?"y":"n");
-    const inp=box.querySelector("input"); if(inp){ inp.classList.add(got[key]?"y":"n"); inp.disabled=true; }
-    box.querySelectorAll(".chips button").forEach(b=>{ if(b.dataset.v===x[field]) b.classList.add("y"); else if(b.classList.contains("sel")) b.classList.add("n"); });
-  });
+  // вписанное: имя и фамилия в любом порядке, опечатки прощаются; выбранное — точное совпадение
+  const typed=key=>{ const i=f.querySelector(`[data-k="${key}"] input`); return i ? norm(i.value).split(" ").filter(t=>t&&!["столп","столпа"].includes(t)) : []; };
+  const near=(toks,list)=>toks.some(t=>list.some(v=>{ v=norm(v); return lev(t,v)<=tol(v.length); }));
+  const pickFull=S.kinds[0]==="pick", pickTitle=S.kinds[1]==="pick", nameT=typed("full"), titleT=typed("title");
+  const got = skip ? {first:false,last:false,title:false} : {
+    first: pickFull ? S.sel.full===x.ru : near(nameT,x.first),
+    last:  pickFull ? S.sel.full===x.ru : near(nameT,x.last),
+    title: pickTitle ? S.sel.title===x.tname : near(titleT,x.tw) };
+  const mark=(key,ok,pts,right)=>{ const box=f.querySelector(`[data-k="${key}"]`), res=box.querySelector(".res");
+    res.textContent = ok===true ? `✓ +${pts}` : ok===false ? `✗ ${right}` : `½ +${pts} · ${right}`; res.className="res "+(ok===false?"n":"y");
+    const inp=box.querySelector("input"); if(inp){ inp.classList.add(ok===false?"n":"y"); inp.disabled=true; }
+    box.querySelectorAll(".chips button").forEach(b=>{ if(b.dataset.v===right) b.classList.add("y"); else if(b.classList.contains("sel")) b.classList.add("n"); }); };
+  const np=(got.first?1:0)+(got.last?1:0);
+  mark("full", np===2?true:np===0?false:"half", np, x.ru);
+  mark("title", got.title, 1, x.tname);
   const pts=Object.values(got).filter(Boolean).length;
   S.pts+=pts; S.log.push({ru:x.ru, pts}); $("sPts").textContent=S.pts;
   const st=$("sStage"); st.classList.add("done", pts?"right":"wrong");
@@ -1029,7 +1033,7 @@ function sEnd(){
   sView("sEnd");
   if(me>=Math.max(...GUEST_SCORES.map(g=>g.score))) celebrate();
 }
-$("sShare").onclick=()=>shareText(`Угадай столпа: ${S?S.pts:0} из 27. Женя в выпуске набрал 17. Сможешь больше?`, "stolp");
+$("sShare").onclick=()=>shareText(`Угадай столпа: ${S?S.pts:0} из 27. Сможешь больше?`, "stolp");
 
 // ================= ПРАЗДНИК НА WINNER =================
 const applause=new Audio("audio/applause.mp3");
