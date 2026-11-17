@@ -173,7 +173,7 @@ body.stolpmode .tabs{display:none}
 #stolp .rules div.all{border-top:3px solid #111;font-weight:900}
 #stolp .pt{background:var(--green);color:#111;border-radius:10px;padding:2px 10px;font-weight:900;white-space:nowrap}
 #stolp .rules p{margin:8px 0 0;font-size:14px;color:#444;text-align:center}
-#stolp .seg{grid-template-columns:repeat(3,1fr)}
+#stolp .seg{grid-template-columns:1fr 1fr}
 #stolp .seg button{background:#1a1a1f;padding:10px 4px}
 html:has(body.stolpmode){background:#0b0b0d}
 #stolp .seg button.on{border-color:var(--red)}
@@ -317,7 +317,6 @@ html:has(body.stolpmode){background:#0b0b0d}
     </div>
     <div class="seg" id="sLevel">
       <button data-l="easy">Лёгкий<small>выбрать из 4</small></button>
-      <button data-l="mix">Микс<small>то выбрать, то вписать</small></button>
       <button data-l="hard">Сложный<small>всё вписать</small></button>
     </div>
     <div class="row"><button class="btn" id="sStart">Начать</button></div>
@@ -943,7 +942,7 @@ const GUEST_SCORES=[{name:"Женя", score:17}]; // гости выпусков
 STOLPS.forEach(x=>{ const i=new Image(); i.src=x.img; }); // заранее, чтобы картинка не запаздывала
 const FIELDS=[["name","Имя","fname","first"],["last","Фамилия","lname","last"],["title","Столп чего?","tname","tw"]];
 const pw=n=>n===1?"балл":n>=2&&n<=4?"балла":"баллов";
-let sLevel="mix"; try{ sLevel=localStorage.getItem("stolpLevel")||"mix"; }catch(e){}
+let sLevel="hard"; try{ sLevel=localStorage.getItem("stolpLevel")||"hard"; }catch(e){} if(sLevel!=="easy") sLevel="hard";
 const paintS=()=>document.querySelectorAll("#sLevel button").forEach(b=>b.classList.toggle("on",b.dataset.l===sLevel));
 document.querySelectorAll("#sLevel button").forEach(b=>b.onclick=()=>{ sLevel=b.dataset.l; try{ localStorage.setItem("stolpLevel",sLevel); }catch(e){} paintS(); });
 paintS();
@@ -976,8 +975,7 @@ function sShow(){
   st.querySelector(".plate").innerHTML=`${x.ru}<small>${x.title}</small>`;
   $("sNum").textContent=`${S.pos+1} / ${STOLPS.length}`;
   // что выбирать, что вписывать
-  const kinds = sLevel==="easy" ? ["pick","pick","pick"] : sLevel==="hard" ? ["type","type","type"]
-    : (()=>{ let k; do{ k=FIELDS.map(()=>Math.random()<.5?"pick":"type"); }while(k.every(v=>v===k[0])); return k; })();
+  const kinds = sLevel==="easy" ? ["pick","pick","pick"] : ["type","type","type"];
   S.kinds=kinds; S.sel={};
   $("sFields").innerHTML=FIELDS.map(([key,lab],i)=>`<div class="f" data-k="${key}"><label>${lab}<span class="res"></span></label>${
     kinds[i]==="type" ? `<input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="${i===2?"done":"next"}" placeholder="${["например, Танджиро","например, Камадо","например, воды"][i]}">`
