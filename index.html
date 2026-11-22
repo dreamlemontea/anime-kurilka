@@ -391,11 +391,10 @@ const CHARS = {
   luffy:{ru:"Монки Д. Луффи", en:"Monkey D. Luffy", img:"ch/luffy", al:["луффи"], looks:"right", top:0.001},
   madara:{ru:"Мадара Учиха", en:"Madara Uchiha", img:"ch/madara", al:[], looks:"front", top:0.019},
   giyu:{ru:"Гию Томиока", en:"Giyu Tomioka", img:"ch/giyu", al:["гиюу"], looks:"right", top:0.01},
-  // арта пока нет: в царе горы цветная карточка с буквой, в угадайках не участвуют
-  baki:{ru:"Баки Ханма", en:"Baki Hanma", al:[]},
-  guts:{ru:"Гатс", en:"Guts", al:[]},
-  katara:{ru:"Катара", en:"Katara", al:[]},
-  reze:{ru:"Резе", en:"Reze", al:[]},
+  baki:{ru:"Баки Ханма", en:"Baki Hanma", img:"ch/baki", al:["баки"], looks:"right", top:0.034},
+  guts:{ru:"Гатс", en:"Guts", img:"ch/guts", al:["гац","гатц"], looks:"right", top:0.041},
+  katara:{ru:"Катара", en:"Katara", img:"ch/katara", al:[], looks:"front", top:0.007, cls:0.92},
+  reze:{ru:"Резе", en:"Reze", img:"ch/reze", al:["рэзе"], looks:"front", top:0.003, cls:0.92},
   vash:{ru:"Вэш Ураган", en:"Vash the Stampede", img:"ch/vash", al:["вэш","ваш ураган","триган"], looks:"left", top:0.007},
   dante:{ru:"Данте", en:"Dante", img:"ch/dante2", al:[], looks:"front", top:0.031},
   okarun:{ru:"Окарун", en:"Okarun", img:"ch/okarun", al:["кен такакура","такакура"], looks:"right", top:0.084, cls:0.92},
@@ -403,7 +402,7 @@ const CHARS = {
   tanjiro:{ru:"Танджиро Камадо", en:"Tanjiro Kamado", img:"ch/tanjiro", al:["танжиро","тандзиро"], looks:"right", top:0.239, cls:0.92},
   okabe:{ru:"Ринтаро Окабэ", en:"Rintaro Okabe", img:"ch/okabe", al:["окабе","окарин"], looks:"left", top:0.009},
   yuji:{ru:"Юдзи Итадори", en:"Yuji Itadori", img:"ch/yuji", al:["юджи","итадори"], looks:"right", top:0.009, cls:0.92},
-  dio:{ru:"Дио Брандо", en:"Dio Brando", al:["дио"]},
+  dio:{ru:"Дио Брандо", en:"Dio Brando", img:"ch/dio", al:["дио"], looks:"front", top:0.006},
 };
 // Наборы «царя горы» — твои пулы по возрастанию силы; арт у персонажа один на все пулы
 const SETS = [
@@ -417,6 +416,8 @@ const SETS = [
    list:"baki guts giyu katara reze itachi akaza luffy dio kenpachi sukuna shanks madara gojo ichigo jinwoo saitama light"},
   {name:"Пул 5", note:"батл №33", winner:"saitama",
    list:"naruto vash sukuna eren geto yoh yuji levi okarun toji tanjiro dante luffy saitama okabe"},
+  {name:"Пул 6", note:"батл №38 с Даней", guest:"У Дани", winner:"saitama",
+   list:"baki guts giyu katara reze itachi akaza luffy dio kenpachi sukuna shanks madara gojo ichigo jinwoo saitama light"},
 ].map(s=>({...s, list:s.list.split(" ").map(c=>({c, img:CHARS[c].img||"-"}))}));
 
 const HASHIRA = [
