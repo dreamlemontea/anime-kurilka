@@ -71,10 +71,11 @@ input[type=text]:focus{border-color:var(--accent)}
 .setcard.pool{flex-direction:column;align-items:stretch;gap:8px;overflow:hidden}
 .crowd{display:flex;justify-content:center;height:96px;margin:0 -14px -14px;padding:0 20px;order:2;
   -webkit-mask-image:linear-gradient(to bottom,#000 65%,transparent);mask-image:linear-gradient(to bottom,#000 65%,transparent)}
-.crowd img{height:100%;width:auto;object-fit:contain;object-position:bottom;
+/* толпа: у всех силуэтов одна ширина коробки, стоят плотно внахлёст — во всех пулах одинаковый блок */
+.crowd img{flex:0 0 auto;width:64px;height:100%;margin-left:-28px;align-self:flex-end;object-fit:contain;object-position:bottom;
   filter:brightness(0) invert(1) opacity(.5)}
-.crowd img{align-self:flex-end}
-.crowd img:nth-child(even){filter:brightness(0) invert(1) opacity(.35)}
+.crowd img:first-child{margin-left:0}
+.crowd img:nth-child(even){height:86%;filter:brightness(0) invert(1) opacity(.35)}
 .setcard .faces{display:flex;flex:0 0 auto;padding-right:18px}
 .setcard .faces img{width:44px;height:56px;object-fit:cover;object-position:top;border-radius:8px;background:#2c2c40;margin-right:-14px;border:2px solid var(--card)}
 .setcard b{display:block;font-size:17px}
@@ -412,12 +413,10 @@ const SETS = [
    list:"shikamaru denji levi rocklee kenpachi zoro toji kakashi ichigo hao makima muzan eren sukuna jinwoo saitama gojo light"},
   {name:"Пул 3", note:"батл с Женей", guest:"У Жени", winner:"light",
    list:"thorfinn levi todo guy maki yoh itachi rengoku ichigo makima muzan shanks gojo jinwoo saitama sukuna eren light"},
-  {name:"Пул 4", note:"",
+  {name:"Пул 4", note:"батл №38 с Даней", guest:"У Дани", winner:"saitama",
    list:"baki guts giyu katara reze itachi akaza luffy dio kenpachi sukuna shanks madara gojo ichigo jinwoo saitama light"},
   {name:"Пул 5", note:"батл №33", winner:"saitama",
    list:"naruto vash sukuna eren geto yoh yuji levi okarun toji tanjiro dante luffy saitama okabe"},
-  {name:"Пул 6", note:"батл №38 с Даней", guest:"У Дани", winner:"saitama",
-   list:"baki guts giyu katara reze itachi akaza luffy dio kenpachi sukuna shanks madara gojo ichigo jinwoo saitama light"},
 ].map(s=>({...s, list:s.list.split(" ").map(c=>({c, img:CHARS[c].img||"-"}))}));
 
 const HASHIRA = [
@@ -829,19 +828,6 @@ $("sets").innerHTML = SETS.map((s,k)=>`
     <div><b>${s.name}</b><small>${s.list.length} бойцов</small></div>
   </button>`).join("");
 document.querySelectorAll("#sets .setcard").forEach(b=>b.onclick=()=>startKing(+b.dataset.k));
-// толпа: каждый заходит на соседа на ~половину своей ширины, всё вместе ужимается под карточку
-function packCrowd(cr){
-  const imgs=[...cr.querySelectorAll("img")]; if(!imgs.every(i=>i.complete)) return;
-  const H=cr.clientHeight, max=cr.clientWidth*0.8;
-  const ws=imgs.map((i,k)=>i.naturalWidth/i.naturalHeight*H*(k%2?.88:1));
-  const total=ws.reduce((a,w)=>a+w*.5,0)+ws[ws.length-1]*.5, k=Math.min(1,max/total);
-  imgs.forEach((i,n)=>{ const w=ws[n]*k; i.style.width=w+"px"; i.style.height=(n%2?.88:1)*H*k+"px"; i.style.marginLeft=n?(-w*.5)+"px":"0"; });
-}
-document.querySelectorAll(".crowd").forEach(cr=>{
-  cr.querySelectorAll("img").forEach(i=>i.addEventListener("load",()=>packCrowd(cr)));
-  packCrowd(cr);
-});
-
 function fill(el, f){
   const c=CHARS[f.c]; el.style.setProperty("--c",hue(f.c));
   setArt(el,f); el.querySelector(".cap b").textContent=c.ru;
