@@ -404,6 +404,10 @@ const CHARS = {
   okabe:{ru:"Ринтаро Окабэ", en:"Rintaro Okabe", img:"ch/okabe", al:["окабе","окарин"], looks:"left", top:0.009},
   yuji:{ru:"Юдзи Итадори", en:"Yuji Itadori", img:"ch/yuji", al:["юджи","итадори"], looks:"right", top:0.009, cls:0.92},
   dio:{ru:"Дио Брандо", en:"Dio Brando", img:"ch/dio", al:["дио"], looks:"front", top:0.006},
+  // арта пока нет: в царе горы цветная карточка с буквой, в угадайках не участвуют
+  kafka:{ru:"Кафка Хибино", en:"Kafka Hibino", al:["кафка","кайдзю номер 8"]},
+  aang:{ru:"Аватар Аанг", en:"Avatar Aang", al:["аанг","аватар"]},
+  momo:{ru:"Момо Аясе", en:"Momo Ayase", al:["момо","аясе","аясэ"]},
 };
 // Наборы «царя горы» — твои пулы по возрастанию силы; арт у персонажа один на все пулы
 const SETS = [
@@ -413,10 +417,12 @@ const SETS = [
    list:"shikamaru denji levi rocklee kenpachi zoro toji kakashi ichigo hao makima muzan eren sukuna jinwoo saitama gojo light"},
   {name:"Пул 3", note:"батл с Женей", guest:"У Жени", winner:"light",
    list:"thorfinn levi todo guy maki yoh itachi rengoku ichigo makima muzan shanks gojo jinwoo saitama sukuna eren light"},
-  {name:"Пул 4", note:"батл №38 с Даней", guest:"У Дани", winner:"saitama",
-   list:"baki guts giyu katara reze itachi akaza luffy dio kenpachi sukuna shanks madara gojo ichigo jinwoo saitama light"},
+  {name:"Пул 4", note:"", winner:"jinwoo",
+   list:"naruto vash dante sukuna jinwoo eren levi okarun geto yoh kafka gojo denji tanjiro aang light okabe momo"},
   {name:"Пул 5", note:"батл №33", winner:"saitama",
    list:"naruto vash sukuna eren geto yoh yuji levi okarun toji tanjiro dante luffy saitama okabe"},
+  {name:"Пул 6", note:"батл №38 с Даней", guest:"У Дани", winner:"saitama",
+   list:"baki guts giyu katara reze itachi akaza luffy dio kenpachi sukuna shanks madara gojo ichigo jinwoo saitama light"},
 ].map(s=>({...s, list:s.list.split(" ").map(c=>({c, img:CHARS[c].img||"-"}))}));
 
 const HASHIRA = [
@@ -1057,6 +1063,16 @@ function celebrate(){
 // ================= ВКЛАДКИ, TELEGRAM =================
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
   if(R && $("gRun").style.display!=="none") $("gMenu").click(); // уход с вкладки = выход в меню
+  // нажал на свою же вкладку (или вернулся в «Царь горы» после финала) — к списку пулов/игр
+  const same=t.classList.contains("on");
+  if(t.dataset.s==="king" && (same || $("kEnd").style.display==="block")){
+    if($("kPlay").style.display==="block") $("kMenu").click();
+    if($("kEnd").style.display==="block") $("kOther").click();
+  }
+  if(t.dataset.s==="guess" && same){
+    if($("gEnd").style.display==="block") $("gBack").click();
+    if($("gGrid").style.display==="block") $("gGridBack").click();
+  }
   document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===t));
   document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===t.dataset.s));
 });
