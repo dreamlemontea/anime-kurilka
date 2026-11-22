@@ -360,7 +360,7 @@ const CHARS = {
   shikamaru:{ru:"Нара Шикамару", en:"Shikamaru Nara", img:"ch/shikamaru", al:[], looks:"left", top:0.027, cls:0.92},
   denji:{ru:"Дэндзи", en:"Denji", img:"ch/denji", al:["денджи"], looks:"right", top:0.08, cls:0.92},
   levi:{ru:"Леви Аккерман", en:"Levi Ackerman", img:"ch/levi", al:["ливай","леви"], looks:"right", top:0.037},
-  rocklee:{ru:"Рок Ли", en:"Rock Lee", img:"ch/rocklee", al:[], looks:"right", top:0.045, cls:0.92},
+  rocklee:{ru:"Рок Ли", en:"Rock Lee", img:"ch/rocklee", al:[], looks:"left", top:0.013, cls:0.92},
   kenpachi:{ru:"Кенпачи Зараки", en:"Kenpachi Zaraki", img:"ch/kenpachi", al:[], looks:"right", top:0.036, cls:1.06},
   zoro:{ru:"Ророноа Зоро", en:"Roronoa Zoro", img:"ch/zoro", al:[], looks:"right", top:0.007},
   toji:{ru:"Тодзи Фусигуро", en:"Toji Fushiguro", img:"ch/toji", al:["тоджи","фушигуро"], looks:"left", top:0.004},
@@ -404,10 +404,9 @@ const CHARS = {
   okabe:{ru:"Ринтаро Окабэ", en:"Rintaro Okabe", img:"ch/okabe", al:["окабе","окарин"], looks:"left", top:0.009},
   yuji:{ru:"Юдзи Итадори", en:"Yuji Itadori", img:"ch/yuji", al:["юджи","итадори"], looks:"right", top:0.009, cls:0.92},
   dio:{ru:"Дио Брандо", en:"Dio Brando", img:"ch/dio", al:["дио"], looks:"front", top:0.006},
-  // арта пока нет: в царе горы цветная карточка с буквой, в угадайках не участвуют
-  kafka:{ru:"Кафка Хибино", en:"Kafka Hibino", al:["кафка","кайдзю номер 8"]},
-  aang:{ru:"Аватар Аанг", en:"Avatar Aang", al:["аанг","аватар"]},
-  momo:{ru:"Момо Аясе", en:"Momo Ayase", al:["момо","аясе","аясэ"]},
+  kafka:{ru:"Кафка Хибино", en:"Kafka Hibino", img:"ch/kafka", al:["кафка","кайдзю номер 8","кайдзю №8"], looks:"front", top:0.033},
+  aang:{ru:"Аватар Аанг", en:"Avatar Aang", img:"ch/aang", al:["аанг","аватар"], looks:"front", top:0.001, cls:0.92},
+  momo:{ru:"Момо Аясе", en:"Momo Ayase", img:"ch/momo", al:["момо","аясе","аясэ"], looks:"front", top:0.009, cls:0.92},
 };
 // Наборы «царя горы» — твои пулы по возрастанию силы; арт у персонажа один на все пулы
 const SETS = [
@@ -829,7 +828,7 @@ const hue=s=>{ let h=0; for(const c of s) h=(h*31+c.charCodeAt(0))|0; return `hs
 let K=null; // {set, champ, next, streak, beaten:[], busy}
 
 // рост в толпе относительно взрослого (1): подростки и мелкие ниже, громилы выше
-const CROWD_H={rocklee:.86, ren:.82, yoh:.84, hao:.84, okarun:.8, tanjiro:.84, nezuko:.78, katara:.84, naruto:.8, shikamaru:.88,
+const CROWD_H={rocklee:.86, ren:.82, yoh:.84, hao:.84, okarun:.8, tanjiro:.84, nezuko:.78, katara:.84, aang:.78, momo:.84, kafka:1.08, naruto:.8, shikamaru:.88,
   denji:.92, yuji:.95, luffy:.9, levi:.86, maki:.93, reze:.88, makima:.93, light:.96, thorfinn:.9, ichigo:.95, saitama:.96, akaza:.95,
   baki:.94, gojo:1.08, todo:1.06, kenpachi:1.08, guts:1.05, dio:1.05, geto:1.05, toji:1.03, shanks:1.02, vash:1.03, dante:1.03};
 function crowdFig(f,i){
