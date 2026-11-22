@@ -542,7 +542,7 @@ function createQuiz(root, cfg){
     q(".grid").innerHTML = round.map(i=>{
       const it=cfg.items[i], cls=(found.has(i)?"open":over?"missed":"")+(it.img?" hasimg":"");
       return `<div class="slot ${cls}" data-i="${i}" style="--c:${it.c||"#3b3b58"}"><div class="q">?</div>
-        ${it.img?`<img src="img/${it.img}.png" alt="" draggable="false">`:""}
+        ${it.img?`<img src="img/${it.img}.png" alt="" draggable="false" loading="lazy">`:""}
         <div class="lab"><div class="nm">${it.ru}</div>${it.title?`<div class="tt">${it.title}</div>`:""}</div></div>`;
     }).join("");
     q(".score").textContent=found.size; q(".miss").textContent=misses; q(".total").textContent=round.length;
@@ -833,7 +833,7 @@ const CROWD_H={rocklee:.86, ren:.82, yoh:.84, hao:.84, okarun:.8, tanjiro:.84, n
   baki:.94, gojo:1.08, todo:1.06, kenpachi:1.08, guts:1.05, dio:1.05, geto:1.05, toji:1.03, shanks:1.02, vash:1.03, dante:1.03};
 function crowdFig(f,i){
   const c=CHARS[f.c], h=(CROWD_H[f.c]||1)*(i%2?.9:1)*0.9; // задний ряд чуть меньше — даль
-  return `<span><img src="img/${f.img}.png" alt="" style="height:${(100*h/(1-(c.top||0))).toFixed(1)}%"></span>`;
+  return `<span><img src="img/th/${f.img.slice(3)}.png" onerror="this.onerror=null;this.src='img/${f.img}.png'" alt="" style="height:${(100*h/(1-(c.top||0))).toFixed(1)}%"></span>`;
 }
 $("sets").innerHTML = SETS.map((s,k)=>`
   <button class="setcard pool" data-k="${k}">
@@ -939,7 +939,7 @@ const STOLPS=STOLP_ORDER.map(([id,ru,h])=>{ const H=HASHIRA[h];
   return {id, ru, img:`img/stolp/${id}.png`, first:H.first, last:[...H.last,"узуи"].filter((v,i,a)=>h===3||v!=="узуи"),
     tw:H.tw, title:H.title, fname:ru.split(" ")[0], lname:ru.split(" ")[1], tname:H.title.replace("Столп ","")}; });
 const GUEST_SCORES=[{name:"Женя", score:17}]; // гости выпусков; новый выпуск = ещё строка
-STOLPS.forEach(x=>{ const i=new Image(); i.src=x.img; }); // заранее, чтобы картинка не запаздывала
+let stolpPre=false; // столпов грузим при входе в игру, а не при старте приложения
 const FIELDS=[["full","Имя и фамилия","ru"],["title","Столп чего?","tname"]]; // имя и фамилия в одной графе: у них легко перепутать, где что
 const pw=n=>n===1?"балл":n>=2&&n<=4?"балла":"баллов";
 let sLevel="hard"; try{ sLevel=localStorage.getItem("stolpLevel")||"hard"; }catch(e){} if(sLevel!=="easy") sLevel="hard";
@@ -950,6 +950,7 @@ let S=null; // {pos, pts, log, kinds, t0, timer, locked}
 const SEC=30;
 function sView(v){ ["sIntro","sPlay","sEnd"].forEach(id=>$(id).style.display=id===v?"block":"none"); window.scrollTo(0,0); }
 function openStolp(){
+  if(!stolpPre){ stolpPre=true; STOLPS.forEach(x=>{ const i=new Image(); i.src=x.img; }); }
   if(R && $("gRun").style.display!=="none") $("gMenu").click();
   document.body.classList.add("stolpmode");
   try{ document.fonts.load('40px roadrage','угадай СТОЛПА'); }catch(e){} // кисть для табло — заранее
