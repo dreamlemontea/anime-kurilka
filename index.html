@@ -71,11 +71,11 @@ input[type=text]:focus{border-color:var(--accent)}
 .setcard.pool{flex-direction:column;align-items:stretch;gap:8px;overflow:hidden}
 .crowd{display:flex;justify-content:center;height:96px;margin:0 -14px -14px;padding:0 20px;order:2;
   -webkit-mask-image:linear-gradient(to bottom,#000 65%,transparent);mask-image:linear-gradient(to bottom,#000 65%,transparent)}
-/* толпа: у всех силуэтов одна ширина коробки, стоят плотно внахлёст — во всех пулах одинаковый блок */
-.crowd img{flex:0 0 auto;width:64px;height:100%;margin-left:-28px;align-self:flex-end;object-fit:contain;object-position:bottom;
-  filter:brightness(0) invert(1) opacity(.5)}
-.crowd img:first-child{margin-left:0}
-.crowd img:nth-child(even){height:86%;filter:brightness(0) invert(1) opacity(.35)}
+/* толпа: силуэты в натуральный рост, через равный шаг; передний ряд светлее и перекрывает задний */
+.crowd span{flex:0 0 24px;position:relative;height:100%}
+.crowd img{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:auto;max-width:none;
+  filter:brightness(0) invert(.62) drop-shadow(1.5px 0 0 #1d1d29) drop-shadow(-1.5px 0 0 #1d1d29);z-index:2}
+.crowd span:nth-child(even) img{bottom:5px;filter:brightness(0) invert(.36);z-index:1}
 .setcard .faces{display:flex;flex:0 0 auto;padding-right:18px}
 .setcard .faces img{width:44px;height:56px;object-fit:cover;object-position:top;border-radius:8px;background:#2c2c40;margin-right:-14px;border:2px solid var(--card)}
 .setcard b{display:block;font-size:17px}
@@ -822,9 +822,17 @@ $("gShare").onclick=()=>shareText(`«${R.cfg.name}»: угадал ${R.log.filte
 const hue=s=>{ let h=0; for(const c of s) h=(h*31+c.charCodeAt(0))|0; return `hsl(${Math.abs(h)%360} 55% 42%)`; };
 let K=null; // {set, champ, next, streak, beaten:[], busy}
 
+// рост в толпе относительно взрослого (1): подростки и мелкие ниже, громилы выше
+const CROWD_H={rocklee:.86, ren:.82, yoh:.84, hao:.84, okarun:.8, tanjiro:.84, nezuko:.78, katara:.84, naruto:.8, shikamaru:.88,
+  denji:.92, yuji:.95, luffy:.9, levi:.86, maki:.93, reze:.88, makima:.93, light:.96, thorfinn:.9, ichigo:.95, saitama:.96, akaza:.95,
+  baki:.94, gojo:1.08, todo:1.06, kenpachi:1.08, guts:1.05, dio:1.05, geto:1.05, toji:1.03, shanks:1.02, vash:1.03, dante:1.03};
+function crowdFig(f,i){
+  const c=CHARS[f.c], h=(CROWD_H[f.c]||1)*(i%2?.9:1)*0.9; // задний ряд чуть меньше — даль
+  return `<span><img src="img/${f.img}.png" alt="" style="height:${(100*h/(1-(c.top||0))).toFixed(1)}%"></span>`;
+}
 $("sets").innerHTML = SETS.map((s,k)=>`
   <button class="setcard pool" data-k="${k}">
-    <div class="crowd">${shuffle(s.list.filter(f=>f.img!=="-")).slice(0,10).map(f=>`<img src="img/${f.img}.png" alt="">`).join("")}</div>
+    <div class="crowd">${shuffle(s.list.filter(f=>f.img!=="-")).slice(0,10).map(crowdFig).join("")}</div>
     <div><b>${s.name}</b><small>${s.list.length} бойцов</small></div>
   </button>`).join("");
 document.querySelectorAll("#sets .setcard").forEach(b=>b.onclick=()=>startKing(+b.dataset.k));
